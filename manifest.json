@@ -1,6 +1,6 @@
 {
-  "name": "To Do List Checklist",
-  "short_name": "Checklist",
+  "name": "Tarefas de Hoje",
+  "short_name": "Tarefas Hoje",
   "description": "Meu diário de tarefas em estilo Bullet Journal",
   "start_url": "./index.html",
   "display": "standalone",

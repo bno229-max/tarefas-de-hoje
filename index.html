@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>To Do List Checklist</title>
+    <title>Tarefas de Hoje</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f7d05c">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -99,10 +102,9 @@
             gap: 12px;
             margin-bottom: 18px;
             position: relative;
-            touch-action: none; /* Essencial para o Drag & Drop no celular */
+            touch-action: none;
         }
 
-        /* Indicador visual de arrastar */
         li.dragging {
             opacity: 0.5;
             transform: scale(0.98);
@@ -128,7 +130,7 @@
             border-radius: 25px;
             color: #333;
             border: 2px solid transparent;
-            cursor: grab; /* Ícone de mãozinha para arrastar */
+            cursor: grab;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -161,7 +163,6 @@
             transform: rotate(-10deg);
         }
 
-        /* --- MODAL DE SUB-TAREFAS --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -209,7 +210,6 @@
             text-decoration: underline;
         }
 
-        /* Canvas invisível para os confetes */
         #confetti-canvas {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -224,7 +224,7 @@
 
     <div class="app-container">
         <header>
-            <h1>To Do List<br>Checklist</h1>
+            <h1>Tarefas de Hoje<br>Checklist</h1>
         </header>
 
         <div class="input-area">
@@ -253,12 +253,13 @@
     </div>
 
     <script>
-        let tasks = JSON.parse(localStorage.getItem('myPwaFinalTasksV3')) || [];
+        // Mudei o nome da chave do LocalStorage para evitar conflito de cachê
+        let tasks = JSON.parse(localStorage.getItem('myPwaTasksV4')) || [];
         let currentTaskId = null;
         let colorIndex = 1;
 
         function persistData() {
-            localStorage.setItem('myPwaFinalTasksV3', JSON.stringify(tasks));
+            localStorage.setItem('myPwaTasksV4', JSON.stringify(tasks));
         }
 
         function formatarData() {
@@ -288,7 +289,6 @@
                 
                 list.appendChild(li);
                 
-                // Configura eventos de arrastar para computadores e celulares
                 if(!task.concluida) setupDragAndDropEvents(li);
             });
         }
@@ -310,7 +310,6 @@
                 colorClass: assignedColor
             };
 
-            // Novas tarefas entram no topo
             tasks.unshift(newTask);
             document.getElementById('titulo').value = '';
             
@@ -331,7 +330,6 @@
                 return task;
             });
 
-            // Reorganiza para jogar os concluídos para o final do array
             tasks.sort((a, b) => a.concluida - b.concluida);
 
             persistData();
@@ -339,9 +337,7 @@
             checkCheerCondition();
         }
 
-        // --- SISTEMA DE CONFETES NATIVOS ---
         function checkCheerCondition() {
-            // Condição: Se havia tarefas criadas e agora o número de tarefas pendentes é ZERO
             const totalPendentes = tasks.filter(t => !t.concluida).length;
             if (tasks.length > 0 && totalPendentes === 0) {
                 celebrate();
@@ -392,17 +388,14 @@
             update();
         }
 
-        // --- DRAG & DROP (MÓVEL E WEB) ---
         let dragSrcEl = null;
 
         function setupDragAndDropEvents(el) {
-            // Suporte para Mouse
             el.addEventListener('dragstart', handleDragStart);
             el.addEventListener('dragover', handleDragOver);
             el.addEventListener('drop', handleDrop);
             el.addEventListener('dragend', handleDragEnd);
 
-            // Suporte para telas Touch (Celular)
             el.addEventListener('touchstart', handleTouchStart, {passive: false});
             el.addEventListener('touchmove', handleTouchMove, {passive: false});
             el.addEventListener('touchend', handleTouchEnd);
@@ -432,7 +425,6 @@
             renderTasks();
         }
 
-        // Simulação mecânica do Touch para celulares
         let touchStartEl = null;
         function handleTouchStart(e) {
             touchStartEl = this;
@@ -440,7 +432,7 @@
         }
 
         function handleTouchMove(e) {
-            e.preventDefault(); // Impede a rolagem da tela enquanto arrasta
+            e.preventDefault(); 
             const touch = e.touches[0];
             const target = document.elementFromPoint(touch.clientX, touch.clientY);
             const liTarget = target ? target.closest('li') : null;
@@ -468,7 +460,6 @@
             persistData();
         }
 
-        // --- LÓGICA DO MODAL (SUB-TAREFAS) ---
         function openModal(taskId) {
             currentTaskId = taskId;
             const task = tasks.find(t => t.id === taskId);
@@ -533,10 +524,10 @@
 
         renderTasks();
 
-        // Registro do Service Worker do PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log("Erro sw:", err));
+                // Mudança discreta na URL do Service Worker para tentar quebrar cachê
+                navigator.serviceWorker.register('./sw.js?v4').catch(err => console.log("Erro sw:", err));
             });
         }
     </script>
