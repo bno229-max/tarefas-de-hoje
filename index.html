@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tarefas de Hoje</title>
+    <title>Tarefas do Fabiano</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f7d05c">
@@ -30,6 +30,8 @@
             color: var(--text-dark);
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-user-select: none;
+            user-select: none; 
         }
 
         .app-container {
@@ -134,16 +136,21 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            transition: transform 0.1s;
         }
         .task-pill:active { cursor: grabbing; }
 
-        .color-1 { background-color: #e28a55; color: white;}
-        .color-2 { background-color: #f4bc4c; }
-        .color-3 { background-color: #f49c5e; }
-        .color-4 { background-color: #f2a297; }
+        .color-1 { background-color: #e28a55; color: white;} 
+        .color-2 { background-color: #f4bc4c; } 
+        .color-3 { background-color: #f49c5e; } 
+        .color-4 { background-color: #f2a297; } 
+        .color-5 { background-color: #85c1e9; } 
+        .color-6 { background-color: #f1948a; color: white;} 
+        .color-7 { background-color: #a2d9ce; } 
+        .color-8 { background-color: #bb8fce; color: white;} 
 
-        .task-title { font-size: 20px; line-height: 1.1; }
-        .task-time { font-size: 13px; opacity: 0.7; font-family: sans-serif; margin-top: 4px; }
+        .task-title { font-size: 20px; line-height: 1.1; pointer-events: none; }
+        .task-time { font-size: 13px; opacity: 0.7; font-family: sans-serif; margin-top: 4px; pointer-events: none; }
 
         .completed .task-pill {
             background-color: transparent !important;
@@ -199,17 +206,6 @@
         .sub-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 20px; }
         .sub-item.completed span { text-decoration: line-through; opacity: 0.5; }
 
-        .btn-delete {
-            margin-top: 15px;
-            background: none;
-            border: none;
-            color: red;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
         #confetti-canvas {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -224,7 +220,7 @@
 
     <div class="app-container">
         <header>
-            <h1>Tarefas de Hoje<br>Checklist</h1>
+            <h1>Tarefas do Fabiano<br>Checklist</h1>
         </header>
 
         <div class="input-area">
@@ -248,18 +244,19 @@
             </div>
 
             <ul class="sub-items-list" id="subItemsList"></ul>
-            <button class="btn-delete" onclick="deleteCurrentTask()">Excluir lista inteira</button>
         </div>
     </div>
 
     <script>
-        // Mudei o nome da chave do LocalStorage para evitar conflito de cachê
-        let tasks = JSON.parse(localStorage.getItem('myPwaTasksV4')) || [];
+        // Mantive a mesma chave de armazenamento para você não perder suas listas!
+        let tasks = JSON.parse(localStorage.getItem('myPwaTasksV5')) || [];
         let currentTaskId = null;
-        let colorIndex = 1;
+        
+        let longPressTimer;
+        let didLongPress = false;
 
         function persistData() {
-            localStorage.setItem('myPwaTasksV4', JSON.stringify(tasks));
+            localStorage.setItem('myPwaTasksV5', JSON.stringify(tasks));
         }
 
         function formatarData() {
@@ -271,7 +268,7 @@
             const list = document.getElementById('taskList');
             list.innerHTML = '';
 
-            tasks.forEach((task, index) => {
+            tasks.forEach((task) => {
                 const li = document.createElement('li');
                 li.setAttribute('draggable', task.concluida ? 'false' : 'true');
                 li.setAttribute('data-id', task.id);
@@ -280,13 +277,20 @@
 
                 li.innerHTML = `
                     <div class="custom-checkbox ${task.concluida ? 'checked' : ''}" onclick="toggleStatus('${task.id}')"></div>
-                    <div class="task-pill ${task.colorClass}" onclick="openModal('${task.id}')">
+                    <div class="task-pill ${task.colorClass}" 
+                         onmousedown="startPress(event, '${task.id}')" 
+                         onmouseup="cancelPress()" 
+                         onmouseleave="cancelPress()"
+                         ontouchstart="startPress(event, '${task.id}')" 
+                         ontouchend="cancelPress()" 
+                         ontouchmove="cancelPress()"
+                         onclick="handlePillClick(event, '${task.id}')">
                         <span class="task-title">${task.titulo}</span>
                         <div class="task-time">${timeText}</div>
                     </div>
                 `;
-                if(task.concluida) li.classList.add('completed');
                 
+                if(task.concluida) li.classList.add('completed');
                 list.appendChild(li);
                 
                 if(!task.concluida) setupDragAndDropEvents(li);
@@ -297,8 +301,8 @@
             const titulo = document.getElementById('titulo').value.trim();
             if (titulo === '') return;
 
-            const assignedColor = `color-${colorIndex}`;
-            colorIndex = colorIndex >= 4 ? 1 : colorIndex + 1;
+            const colorClasses = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7', 'color-8'];
+            const assignedColor = colorClasses[Math.floor(Math.random() * colorClasses.length)];
 
             const newTask = {
                 id: Date.now().toString(),
@@ -318,9 +322,12 @@
         }
 
         function toggleStatus(id) {
+            let turnedOn = false; 
+            
             tasks = tasks.map(task => {
                 if (task.id === id) {
                     const isNowCompleted = !task.concluida;
+                    if (isNowCompleted) turnedOn = true; 
                     return { 
                         ...task, 
                         concluida: isNowCompleted,
@@ -334,14 +341,37 @@
 
             persistData();
             renderTasks();
-            checkCheerCondition();
-        }
-
-        function checkCheerCondition() {
-            const totalPendentes = tasks.filter(t => !t.concluida).length;
-            if (tasks.length > 0 && totalPendentes === 0) {
+            
+            if (turnedOn) {
                 celebrate();
             }
+        }
+
+        function startPress(e, id) {
+            didLongPress = false;
+            longPressTimer = setTimeout(() => {
+                didLongPress = true;
+                
+                if (navigator.vibrate) navigator.vibrate(50);
+                
+                if (confirm('Deseja excluir esta tarefa principal e todos os seus itens?')) {
+                    tasks = tasks.filter(t => t.id !== id);
+                    persistData();
+                    renderTasks();
+                }
+            }, 700); 
+        }
+
+        function cancelPress() {
+            clearTimeout(longPressTimer);
+        }
+
+        function handlePillClick(e, id) {
+            if (didLongPress) {
+                e.preventDefault();
+                return;
+            }
+            openModal(id);
         }
 
         function celebrate() {
@@ -351,7 +381,7 @@
             canvas.height = window.innerHeight;
 
             let pieces = [];
-            const colors = ['#f7d05c', '#f49c5e', '#f2a297', '#e28a55', '#4A90E2'];
+            const colors = ['#f7d05c', '#f49c5e', '#f2a297', '#e28a55', '#4A90E2', '#a2d9ce', '#bb8fce'];
 
             for (let i = 0; i < 100; i++) {
                 pieces.push({
@@ -453,10 +483,8 @@
         function reorderArray(srcId, targetId) {
             const srcIndex = tasks.findIndex(t => t.id === srcId);
             const targetIndex = tasks.findIndex(t => t.id === targetId);
-            
             const [removed] = tasks.splice(srcIndex, 1);
             tasks.splice(targetIndex, 0, removed);
-            
             persistData();
         }
 
@@ -511,14 +539,6 @@
             renderSubItems();
         }
 
-        function deleteCurrentTask() {
-            if(confirm('Apagar esta tarefa e todos os seus itens?')) {
-                tasks = tasks.filter(t => t.id !== currentTaskId);
-                persistData();
-                closeModal();
-            }
-        }
-
         document.getElementById('titulo').addEventListener('keypress', e => { if (e.key === 'Enter') saveTask(); });
         document.getElementById('subItemInput').addEventListener('keypress', e => { if (e.key === 'Enter') addSubItem(); });
 
@@ -526,8 +546,8 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Mudança discreta na URL do Service Worker para tentar quebrar cachê
-                navigator.serviceWorker.register('./sw.js?v4').catch(err => console.log("Erro sw:", err));
+                // Versão v6 para quebrar o cachê antigo!
+                navigator.serviceWorker.register('./sw.js?v6').catch(err => console.log("Erro sw:", err));
             });
         }
     </script>

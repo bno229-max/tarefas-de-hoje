@@ -1,6 +1,6 @@
 {
-  "name": "Tarefas de Hoje",
-  "short_name": "Tarefas Hoje",
+  "name": "Tarefas do Fabiano",
+  "short_name": "Fabiano",
   "description": "Meu diário de tarefas em estilo Bullet Journal",
   "start_url": "./index.html",
   "display": "standalone",
