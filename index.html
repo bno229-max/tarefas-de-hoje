@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>To Do List Checklist</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-paper: #fcf6eb;
+            --line-color: #d3c4b7;
+            --margin-line: #e0c8b8;
+            --text-dark: #333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #dcdcdc; 
+            display: flex;
+            justify-content: center;
+            font-family: 'Patrick Hand', cursive;
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            background-color: var(--bg-paper);
+            background-image: 
+                linear-gradient(90deg, transparent 40px, var(--margin-line) 40px, var(--margin-line) 42px, transparent 42px),
+                repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
+            background-attachment: local;
+            padding: 20px 15px 50px 55px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+        }
+
+        header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
+        h1 {
+            font-size: 42px;
+            color: #fff;
+            text-shadow: -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333, 3px 3px 0px #f7d05c;
+            letter-spacing: 2px;
+            line-height: 1.1;
+        }
+
+        .input-area {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 25px;
+            box-shadow: 3px 3px 0 #d3c4b7;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: none;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 22px;
+            outline: none;
+            background: transparent;
+        }
+
+        .add-btn {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            box-shadow: 2px 2px 0 #f7d05c;
+            transition: 0.1s;
+        }
+        .add-btn:active { box-shadow: 0 0 0 transparent; transform: translate(2px, 2px); }
+
+        ul { list-style: none; }
+        
+        li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            position: relative;
+            touch-action: none; /* Essencial para o Drag & Drop no celular */
+        }
+
+        /* Indicador visual de arrastar */
+        li.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .custom-checkbox {
+            width: 26px;
+            height: 26px;
+            border: 2px solid #333;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: 2px 2px 0 #d3c4b7;
+        }
+        .custom-checkbox.checked::after { content: '✘'; font-size: 24px; color: #333; }
+
+        .task-pill {
+            flex: 1;
+            padding: 8px 15px;
+            border-radius: 25px;
+            color: #333;
+            border: 2px solid transparent;
+            cursor: grab; /* Ícone de mãozinha para arrastar */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .task-pill:active { cursor: grabbing; }
+
+        .color-1 { background-color: #e28a55; color: white;}
+        .color-2 { background-color: #f4bc4c; }
+        .color-3 { background-color: #f49c5e; }
+        .color-4 { background-color: #f2a297; }
+
+        .task-title { font-size: 20px; line-height: 1.1; }
+        .task-time { font-size: 13px; opacity: 0.7; font-family: sans-serif; margin-top: 4px; }
+
+        .completed .task-pill {
+            background-color: transparent !important;
+            border-color: #999;
+            opacity: 0.6;
+            color: #333;
+            cursor: default;
+        }
+        .completed .task-title { text-decoration: line-through; color: #555; }
+
+        .footer-deco {
+            font-family: 'Caveat', cursive;
+            font-size: 45px;
+            color: #c08480;
+            text-align: right;
+            margin-top: 30px;
+            transform: rotate(-10deg);
+        }
+
+        /* --- MODAL DE SUB-TAREFAS --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-paper);
+            width: 100%;
+            max-width: 360px;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #333;
+            box-shadow: 4px 4px 0 #333;
+            position: relative;
+            background-image: repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-title { font-size: 28px; margin-bottom: 15px; color: #333; border-bottom: 2px dashed #ccc; }
+        .sub-items-list { margin-top: 15px; max-height: 250px; overflow-y: auto; }
+        .sub-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 20px; }
+        .sub-item.completed span { text-decoration: line-through; opacity: 0.5; }
+
+        .btn-delete {
+            margin-top: 15px;
+            background: none;
+            border: none;
+            color: red;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Canvas invisível para os confetes */
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-container">
+        <header>
+            <h1>To Do List<br>Checklist</h1>
+        </header>
+
+        <div class="input-area">
+            <input type="text" id="titulo" placeholder="Add a new task...">
+            <button class="add-btn" onclick="saveTask()">+</button>
+        </div>
+
+        <ul id="taskList"></ul>
+
+        <div class="footer-deco">yes!</div>
+    </div>
+
+    <div class="modal-overlay" id="subItemModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">✖</span>
+            <h2 class="modal-title" id="modalTaskTitle">Itens</h2>
+            
+            <div class="input-area" style="margin-bottom: 15px; box-shadow: none;">
+                <input type="text" id="subItemInput" placeholder="Adicionar item...">
+                <button class="add-btn" onclick="addSubItem()">+</button>
+            </div>
+
+            <ul class="sub-items-list" id="subItemsList"></ul>
+            <button class="btn-delete" onclick="deleteCurrentTask()">Excluir lista inteira</button>
+        </div>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('myPwaFinalTasksV3')) || [];
+        let currentTaskId = null;
+        let colorIndex = 1;
+
+        function persistData() {
+            localStorage.setItem('myPwaFinalTasksV3', JSON.stringify(tasks));
+        }
+
+        function formatarData() {
+            const data = new Date();
+            return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')} às ${data.getHours().toString().padStart(2, '0')}:${data.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.setAttribute('draggable', task.concluida ? 'false' : 'true');
+                li.setAttribute('data-id', task.id);
+                
+                const timeText = task.concluida ? `✓ Concluído: ${task.data_conclusao}` : `✎ Criado: ${task.data_criacao}`;
+
+                li.innerHTML = `
+                    <div class="custom-checkbox ${task.concluida ? 'checked' : ''}" onclick="toggleStatus('${task.id}')"></div>
+                    <div class="task-pill ${task.colorClass}" onclick="openModal('${task.id}')">
+                        <span class="task-title">${task.titulo}</span>
+                        <div class="task-time">${timeText}</div>
+                    </div>
+                `;
+                if(task.concluida) li.classList.add('completed');
+                
+                list.appendChild(li);
+                
+                // Configura eventos de arrastar para computadores e celulares
+                if(!task.concluida) setupDragAndDropEvents(li);
+            });
+        }
+
+        function saveTask() {
+            const titulo = document.getElementById('titulo').value.trim();
+            if (titulo === '') return;
+
+            const assignedColor = `color-${colorIndex}`;
+            colorIndex = colorIndex >= 4 ? 1 : colorIndex + 1;
+
+            const newTask = {
+                id: Date.now().toString(),
+                titulo: titulo,
+                concluida: false,
+                subItems: [],
+                data_criacao: formatarData(),
+                data_conclusao: null,
+                colorClass: assignedColor
+            };
+
+            // Novas tarefas entram no topo
+            tasks.unshift(newTask);
+            document.getElementById('titulo').value = '';
+            
+            persistData();
+            renderTasks();
+        }
+
+        function toggleStatus(id) {
+            tasks = tasks.map(task => {
+                if (task.id === id) {
+                    const isNowCompleted = !task.concluida;
+                    return { 
+                        ...task, 
+                        concluida: isNowCompleted,
+                        data_conclusao: isNowCompleted ? formatarData() : null
+                    };
+                }
+                return task;
+            });
+
+            // Reorganiza para jogar os concluídos para o final do array
+            tasks.sort((a, b) => a.concluida - b.concluida);
+
+            persistData();
+            renderTasks();
+            checkCheerCondition();
+        }
+
+        // --- SISTEMA DE CONFETES NATIVOS ---
+        function checkCheerCondition() {
+            // Condição: Se havia tarefas criadas e agora o número de tarefas pendentes é ZERO
+            const totalPendentes = tasks.filter(t => !t.concluida).length;
+            if (tasks.length > 0 && totalPendentes === 0) {
+                celebrate();
+            }
+        }
+
+        function celebrate() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let pieces = [];
+            const colors = ['#f7d05c', '#f49c5e', '#f2a297', '#e28a55', '#4A90E2'];
+
+            for (let i = 0; i < 100; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    rotation: Math.random() * 360,
+                    speed: 4 + Math.random() * 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    width: 8 + Math.random() * 6,
+                    height: 15 + Math.random() * 5
+                });
+            }
+
+            function update() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+
+                pieces.forEach(p => {
+                    p.y += p.speed;
+                    p.rotation += 2;
+                    if (p.y < canvas.height) alive = true;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height);
+                    ctx.restore();
+                });
+
+                if (alive) requestAnimationFrame(update);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            update();
+        }
+
+        // --- DRAG & DROP (MÓVEL E WEB) ---
+        let dragSrcEl = null;
+
+        function setupDragAndDropEvents(el) {
+            // Suporte para Mouse
+            el.addEventListener('dragstart', handleDragStart);
+            el.addEventListener('dragover', handleDragOver);
+            el.addEventListener('drop', handleDrop);
+            el.addEventListener('dragend', handleDragEnd);
+
+            // Suporte para telas Touch (Celular)
+            el.addEventListener('touchstart', handleTouchStart, {passive: false});
+            el.addEventListener('touchmove', handleTouchMove, {passive: false});
+            el.addEventListener('touchend', handleTouchEnd);
+        }
+
+        function handleDragStart(e) {
+            this.classList.add('dragging');
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            if (dragSrcEl !== this) {
+                reorderArray(dragSrcEl.getAttribute('data-id'), this.getAttribute('data-id'));
+            }
+            return false;
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            renderTasks();
+        }
+
+        // Simulação mecânica do Touch para celulares
+        let touchStartEl = null;
+        function handleTouchStart(e) {
+            touchStartEl = this;
+            this.classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault(); // Impede a rolagem da tela enquanto arrasta
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            const liTarget = target ? target.closest('li') : null;
+
+            if (liTarget && liTarget !== touchStartEl && !liTarget.classList.contains('completed')) {
+                reorderArray(touchStartEl.getAttribute('data-id'), liTarget.getAttribute('data-id'));
+                touchStartEl.classList.remove('dragging');
+                touchStartEl = liTarget;
+                touchStartEl.classList.add('dragging');
+            }
+        }
+
+        function handleTouchEnd() {
+            if (touchStartEl) touchStartEl.classList.remove('dragging');
+            renderTasks();
+        }
+
+        function reorderArray(srcId, targetId) {
+            const srcIndex = tasks.findIndex(t => t.id === srcId);
+            const targetIndex = tasks.findIndex(t => t.id === targetId);
+            
+            const [removed] = tasks.splice(srcIndex, 1);
+            tasks.splice(targetIndex, 0, removed);
+            
+            persistData();
+        }
+
+        // --- LÓGICA DO MODAL (SUB-TAREFAS) ---
+        function openModal(taskId) {
+            currentTaskId = taskId;
+            const task = tasks.find(t => t.id === taskId);
+            document.getElementById('modalTaskTitle').innerText = task.titulo;
+            document.getElementById('subItemModal').style.display = 'flex';
+            renderSubItems();
+        }
+
+        function closeModal() {
+            document.getElementById('subItemModal').style.display = 'none';
+            currentTaskId = null;
+            renderTasks(); 
+        }
+
+        function addSubItem() {
+            const input = document.getElementById('subItemInput');
+            const texto = input.value.trim();
+            if (texto !== '' && currentTaskId) {
+                const task = tasks.find(t => t.id === currentTaskId);
+                task.subItems.push({ id: Date.now().toString(), texto: texto, concluido: false });
+                input.value = '';
+                persistData();
+                renderSubItems();
+            }
+        }
+
+        function renderSubItems() {
+            if (!currentTaskId) return;
+            const task = tasks.find(t => t.id === currentTaskId);
+            const list = document.getElementById('subItemsList');
+            list.innerHTML = '';
+
+            task.subItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = `sub-item ${item.concluido ? 'completed' : ''}`;
+                li.innerHTML = `
+                    <div class="custom-checkbox ${item.concluido ? 'checked' : ''}" style="width: 22px; height: 22px;" onclick="toggleSubItem('${item.id}')"></div>
+                    <span>${item.texto}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function toggleSubItem(subItemId) {
+            const task = tasks.find(t => t.id === currentTaskId);
+            const item = task.subItems.find(i => i.id === subItemId);
+            item.concluido = !item.concluido;
+            persistData();
+            renderSubItems();
+        }
+
+        function deleteCurrentTask() {
+            if(confirm('Apagar esta tarefa e todos os seus itens?')) {
+                tasks = tasks.filter(t => t.id !== currentTaskId);
+                persistData();
+                closeModal();
+            }
+        }
+
+        document.getElementById('titulo').addEventListener('keypress', e => { if (e.key === 'Enter') saveTask(); });
+        document.getElementById('subItemInput').addEventListener('keypress', e => { if (e.key === 'Enter') addSubItem(); });
+
+        renderTasks();
+
+        // Registro do Service Worker do PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log("Erro sw:", err));
+            });
+        }
+    </script>
+</body>
+</html>
