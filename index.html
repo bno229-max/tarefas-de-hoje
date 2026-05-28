@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tarefas do Fabiano</title>
+    <title>Kivo Notes</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f7d05c">
@@ -43,18 +43,29 @@
                 linear-gradient(90deg, transparent 40px, var(--margin-line) 40px, var(--margin-line) 42px, transparent 42px),
                 repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
             background-attachment: local;
-            padding: 20px 15px 50px 55px;
+            padding: 20px 15px 95px 55px; 
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.15);
         }
 
-        header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
+        header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        
+        /* CORREÇÃO DO TÍTULO CONFORME SOLICITADO */
         h1 {
-            font-size: 42px;
+            font-size: 46px;
             color: #fff;
             text-shadow: -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333, 3px 3px 0px #f7d05c;
             letter-spacing: 2px;
-            line-height: 1.1;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        
+        /* NOVO SUBTÍTULO EM FONTE MENOR */
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-dark);
+            opacity: 0.7;
+            letter-spacing: 1px;
         }
 
         .input-area {
@@ -107,10 +118,7 @@
             touch-action: none;
         }
 
-        li.dragging {
-            opacity: 0.5;
-            transform: scale(0.98);
-        }
+        li.dragging { opacity: 0.5; transform: scale(0.98); }
 
         .custom-checkbox {
             width: 26px;
@@ -138,16 +146,11 @@
             justify-content: center;
             transition: transform 0.1s;
         }
-        .task-pill:active { cursor: grabbing; }
 
-        .color-1 { background-color: #e28a55; color: white;} 
-        .color-2 { background-color: #f4bc4c; } 
-        .color-3 { background-color: #f49c5e; } 
-        .color-4 { background-color: #f2a297; } 
-        .color-5 { background-color: #85c1e9; } 
-        .color-6 { background-color: #f1948a; color: white;} 
-        .color-7 { background-color: #a2d9ce; } 
-        .color-8 { background-color: #bb8fce; color: white;} 
+        .cat-fazer { background-color: #e28a55; color: white;} 
+        .cat-agendar { background-color: #f4bc4c; } 
+        .cat-delegar { background-color: #85c1e9; } 
+        .cat-deletas { background-color: #bb8fce; color: white;} /* Lilás para a Lixeira */
 
         .task-title { font-size: 20px; line-height: 1.1; pointer-events: none; }
         .task-time { font-size: 13px; opacity: 0.7; font-family: sans-serif; margin-top: 4px; pointer-events: none; }
@@ -168,6 +171,42 @@
             text-align: right;
             margin-top: 30px;
             transform: rotate(-10deg);
+            margin-bottom: 30px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 380px;
+            background: #ffffaf; 
+            border: 2px solid #333;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 4px 4px 0 #333;
+            z-index: 900;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            flex: 1;
+            transition: 0.2s;
+        }
+
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-label { font-size: 13px; font-weight: bold; }
+
+        .nav-item.active {
+            transform: scale(1.1);
+            color: #e28a55;
+            text-shadow: 1px 1px 0px #333;
         }
 
         .modal-overlay {
@@ -201,17 +240,29 @@
             font-weight: bold;
         }
 
-        .modal-title { font-size: 28px; margin-bottom: 15px; color: #333; border-bottom: 2px dashed #ccc; }
-        .sub-items-list { margin-top: 15px; max-height: 250px; overflow-y: auto; }
+        .modal-title { font-size: 26px; margin-bottom: 15px; color: #333; border-bottom: 2px dashed #ccc; padding-bottom: 3px; }
+        .sub-items-list { margin-top: 15px; max-height: 220px; overflow-y: auto; }
         .sub-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 20px; }
         .sub-item.completed span { text-decoration: line-through; opacity: 0.5; }
 
-        #confetti-canvas {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 9999;
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 2px 2px 0 #333;
         }
+        .menu-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #333; }
+        .btn-danger-menu { color: #ff4757; border-color: #ff4757; }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
     </style>
 </head>
 <body>
@@ -220,11 +271,12 @@
 
     <div class="app-container">
         <header>
-            <h1>Tarefas do Fabiano<br>Checklist</h1>
+            <h1>Kivo Notes</h1>
+            <p class="subtitle">Notas e Tarefas</p>
         </header>
 
         <div class="input-area">
-            <input type="text" id="titulo" placeholder="Add a new task...">
+            <input type="text" id="titulo" placeholder="Crie uma nova tarefa...">
             <button class="add-btn" onclick="saveTask()">+</button>
         </div>
 
@@ -233,13 +285,32 @@
         <div class="footer-deco">yes!</div>
     </div>
 
+    <div class="bottom-nav">
+        <div class="nav-item active" id="tab-fazer" onclick="switchTab('fazer')">
+            <span class="nav-icon">🔥</span>
+            <span class="nav-label">Fazer Agora</span>
+        </div>
+        <div class="nav-item" id="tab-agendar" onclick="switchTab('agendar')">
+            <span class="nav-icon">🕒</span>
+            <span class="nav-label">Agendar</span>
+        </div>
+        <div class="nav-item" id="tab-delegar" onclick="switchTab('delegar')">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Delegar</span>
+        </div>
+        <div class="nav-item" id="tab-deletas" onclick="switchTab('deletas')">
+            <span class="nav-icon">🗑️</span>
+            <span class="nav-label">Deletas</span>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="subItemModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">✖</span>
             <h2 class="modal-title" id="modalTaskTitle">Itens</h2>
             
             <div class="input-area" style="margin-bottom: 15px; box-shadow: none;">
-                <input type="text" id="subItemInput" placeholder="Adicionar item...">
+                <input type="text" id="subItemInput" placeholder="Adicionar sub-item...">
                 <button class="add-btn" onclick="addSubItem()">+</button>
             </div>
 
@@ -247,16 +318,28 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="actionMenuModal">
+        <div class="modal-content" style="background-image: none;">
+            <span class="close-modal" onclick="closeActionMenu()">✖</span>
+            <h2 class="modal-title" id="actionMenuTitle">Opções da Tarefa</h2>
+            
+            <button class="menu-btn" onclick="shareOnWhatsApp()">📤 Compartilhar no WhatsApp</button>
+            <button class="menu-btn btn-danger-menu" id="deleteBtn" onclick="deleteCurrentTask()">🗑️ Excluir</button>
+        </div>
+    </div>
+
     <script>
-        // Mantive a mesma chave de armazenamento para você não perder suas listas!
-        let tasks = JSON.parse(localStorage.getItem('myPwaTasksV5')) || [];
+        // Nova versão do banco local para limpar os testes anteriores
+        let tasks = JSON.parse(localStorage.getItem('kivoNotesDataV2')) || [];
+        
         let currentTaskId = null;
+        let activeQuadrant = 'fazer'; 
         
         let longPressTimer;
         let didLongPress = false;
 
         function persistData() {
-            localStorage.setItem('myPwaTasksV5', JSON.stringify(tasks));
+            localStorage.setItem('kivoNotesDataV2', JSON.stringify(tasks));
         }
 
         function formatarData() {
@@ -264,20 +347,30 @@
             return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')} às ${data.getHours().toString().padStart(2, '0')}:${data.getMinutes().toString().padStart(2, '0')}`;
         }
 
+        function switchTab(quadrant) {
+            activeQuadrant = quadrant;
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${quadrant}`).classList.add('active');
+            renderTasks();
+        }
+
         function renderTasks() {
             const list = document.getElementById('taskList');
             list.innerHTML = '';
 
-            tasks.forEach((task) => {
+            const filteredTasks = tasks.filter(t => t.quadrante === activeQuadrant);
+
+            filteredTasks.forEach((task) => {
                 const li = document.createElement('li');
-                li.setAttribute('draggable', task.concluida ? 'false' : 'true');
+                // Se estiver na aba de deletadas, desativa o arrastar e soltar
+                li.setAttribute('draggable', (task.concluida || activeQuadrant === 'deletas') ? 'false' : 'true');
                 li.setAttribute('data-id', task.id);
                 
                 const timeText = task.concluida ? `✓ Concluído: ${task.data_conclusao}` : `✎ Criado: ${task.data_criacao}`;
 
                 li.innerHTML = `
                     <div class="custom-checkbox ${task.concluida ? 'checked' : ''}" onclick="toggleStatus('${task.id}')"></div>
-                    <div class="task-pill ${task.colorClass}" 
+                    <div class="task-pill cat-${task.quadrante}" 
                          onmousedown="startPress(event, '${task.id}')" 
                          onmouseup="cancelPress()" 
                          onmouseleave="cancelPress()"
@@ -293,7 +386,7 @@
                 if(task.concluida) li.classList.add('completed');
                 list.appendChild(li);
                 
-                if(!task.concluida) setupDragAndDropEvents(li);
+                if(!task.concluida && activeQuadrant !== 'deletas') setupDragAndDropEvents(li);
             });
         }
 
@@ -301,8 +394,8 @@
             const titulo = document.getElementById('titulo').value.trim();
             if (titulo === '') return;
 
-            const colorClasses = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7', 'color-8'];
-            const assignedColor = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+            // Se o usuário criar uma nota estando dentro da lixeira, força ela a ir pro "Fazer Agora"
+            const spawnQuadrant = activeQuadrant === 'deletas' ? 'fazer' : activeQuadrant;
 
             const newTask = {
                 id: Date.now().toString(),
@@ -311,14 +404,14 @@
                 subItems: [],
                 data_criacao: formatarData(),
                 data_conclusao: null,
-                colorClass: assignedColor
+                quadrante: spawnQuadrant 
             };
 
             tasks.unshift(newTask);
             document.getElementById('titulo').value = '';
             
-            persistData();
-            renderTasks();
+            if(activeQuadrant === 'deletas') switchTab('fazer');
+            else { persistData(); renderTasks(); }
         }
 
         function toggleStatus(id) {
@@ -342,29 +435,19 @@
             persistData();
             renderTasks();
             
-            if (turnedOn) {
-                celebrate();
-            }
+            if (turnedOn) celebrate();
         }
 
         function startPress(e, id) {
             didLongPress = false;
             longPressTimer = setTimeout(() => {
                 didLongPress = true;
-                
                 if (navigator.vibrate) navigator.vibrate(50);
-                
-                if (confirm('Deseja excluir esta tarefa principal e todos os seus itens?')) {
-                    tasks = tasks.filter(t => t.id !== id);
-                    persistData();
-                    renderTasks();
-                }
-            }, 700); 
+                openActionMenu(id);
+            }, 600); 
         }
 
-        function cancelPress() {
-            clearTimeout(longPressTimer);
-        }
+        function cancelPress() { clearTimeout(longPressTimer); }
 
         function handlePillClick(e, id) {
             if (didLongPress) {
@@ -372,6 +455,72 @@
                 return;
             }
             openModal(id);
+        }
+
+        function openActionMenu(id) {
+            currentTaskId = id;
+            const task = tasks.find(t => t.id === id);
+            document.getElementById('actionMenuTitle').innerText = task.titulo;
+            
+            // LÓGICA DINÂMICA DE EXCLUSÃO DA LIXEIRA
+            const deleteBtn = document.getElementById('deleteBtn');
+            if (task.quadrante === 'deletas') {
+                deleteBtn.innerText = '🗑️ Excluir Permanentemente';
+            } else {
+                deleteBtn.innerText = '🗑️ Mover para Deletas';
+            }
+
+            document.getElementById('actionMenuModal').style.display = 'flex';
+        }
+
+        function closeActionMenu() {
+            document.getElementById('actionMenuModal').style.display = 'none';
+            currentTaskId = null;
+        }
+
+        function shareOnWhatsApp() {
+            const task = tasks.find(t => t.id === currentTaskId);
+            if (!task) return;
+
+            const labels = { fazer: '🔥 FAZER AGORA', agendar: '🕒 AGENDAR', delegar: '👥 DELEGAR', deletas: '🗑️ DELETAS' };
+            
+            let mensagem = `*Kivo Notes - ${labels[task.quadrante]}*\n`;
+            mensagem += `📌 *Lista: ${task.titulo}*\n`;
+            mensagem += `_Status: ${task.concluida ? 'Concluída' : 'Em andamento'}_ \n\n`;
+
+            if (task.subItems && task.subItems.length > 0) {
+                task.subItems.forEach(item => {
+                    mensagem += item.concluido ? `✅ ~${item.texto}~\n` : `⬜ ${item.texto}\n`;
+                });
+            } else {
+                mensagem += `_(Nenhum sub-item adicionado)_`;
+            }
+
+            const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+            window.open(urlWhatsApp, '_blank');
+            closeActionMenu();
+        }
+
+        // ALTERAÇÃO DO FLUXO DE EXCLUSÃO CONFORME ENUNCIADO (LIXEIRA FLUIDA)
+        function deleteCurrentTask() {
+            const task = tasks.find(t => t.id === currentTaskId);
+            if (!task) return;
+
+            if (task.quadrante !== 'deletas') {
+                // Se veio de outra aba, apenas MOVIMENTA para a aba Deletas
+                task.quadrante = 'deletas';
+                persistData();
+                renderTasks();
+                closeActionMenu();
+            } else {
+                // Se já estava na lixeira, aí sim DETONA permanentemente
+                if (confirm('Tem certeza que deseja apagar permanentemente do dispositivo? Esta ação é irreversível.')) {
+                    tasks = tasks.filter(t => t.id !== currentTaskId);
+                    persistData();
+                    renderTasks();
+                    closeActionMenu();
+                }
+            }
         }
 
         function celebrate() {
@@ -437,10 +586,7 @@
             e.dataTransfer.effectAllowed = 'move';
         }
 
-        function handleDragOver(e) {
-            if (e.preventDefault) e.preventDefault();
-            return false;
-        }
+        function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); return false; }
 
         function handleDrop(e) {
             if (e.stopPropagation) e.stopPropagation();
@@ -450,16 +596,10 @@
             return false;
         }
 
-        function handleDragEnd() {
-            this.classList.remove('dragging');
-            renderTasks();
-        }
+        function handleDragEnd() { this.classList.remove('dragging'); renderTasks(); }
 
         let touchStartEl = null;
-        function handleTouchStart(e) {
-            touchStartEl = this;
-            this.classList.add('dragging');
-        }
+        function handleTouchStart(e) { touchStartEl = this; this.classList.add('dragging'); }
 
         function handleTouchMove(e) {
             e.preventDefault(); 
@@ -467,7 +607,7 @@
             const target = document.elementFromPoint(touch.clientX, touch.clientY);
             const liTarget = target ? target.closest('li') : null;
 
-            if (liTarget && liTarget !== touchStartEl && !liTarget.classList.contains('completed')) {
+            if (liTarget && liTarget !== touchStartEl && !liTarget.classList.contains('completed') && liTarget.getAttribute('data-id')) {
                 reorderArray(touchStartEl.getAttribute('data-id'), liTarget.getAttribute('data-id'));
                 touchStartEl.classList.remove('dragging');
                 touchStartEl = liTarget;
@@ -475,10 +615,7 @@
             }
         }
 
-        function handleTouchEnd() {
-            if (touchStartEl) touchStartEl.classList.remove('dragging');
-            renderTasks();
-        }
+        function handleTouchEnd() { if (touchStartEl) touchStartEl.classList.remove('dragging'); renderTasks(); }
 
         function reorderArray(srcId, targetId) {
             const srcIndex = tasks.findIndex(t => t.id === srcId);
@@ -546,8 +683,8 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Versão v6 para quebrar o cachê antigo!
-                navigator.serviceWorker.register('./sw.js?v6').catch(err => console.log("Erro sw:", err));
+                // Versão v7.1 para forçar o navegador a atualizar o cache local do PWA
+                navigator.serviceWorker.register('./sw.js?v7.1').catch(err => console.log("Erro sw:", err));
             });
         }
     </script>

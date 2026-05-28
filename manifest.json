@@ -1,7 +1,7 @@
 {
-  "name": "Tarefas do Fabiano",
-  "short_name": "Fabiano",
-  "description": "Meu diário de tarefas em estilo Bullet Journal",
+  "name": "Kivo Notes",
+  "short_name": "Kivo",
+  "description": "Meu diário de tarefas e Matriz de Eisenhower",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fcf6eb",
