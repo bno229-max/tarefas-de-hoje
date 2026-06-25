@@ -188,7 +188,7 @@
     <!-- Scripts do Firebase e de Autenticação -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } 
+        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -233,7 +233,10 @@
                 loggedUser = user;
                 initApp();
             } else {
-                signInAnonymously(auth).catch(err => console.error("Erro auth:", err));
+                signInAnonymously(auth).catch(err => {
+                    console.error("Erro auth:", err);
+                    alert("Atenção: A Autenticação Anônima não está ativada no seu Firebase! Vá no console e ative.");
+                });
             }
         });
 
@@ -258,10 +261,11 @@
             render();
         };
 
+        // FUNÇÃO ATUALIZADA: Resolve o problema da tela em branco organizando a ordem no próprio JavaScript
         function initApp() {
             if (isSharedMode) {
                 const docRef = doc(db, "kivo_tasks", sharedNoteId);
-                updateDoc(docRef, { seen: true });
+                updateDoc(docRef, { seen: true }).catch(e => console.log("Erro de leitura:", e));
                 onSnapshot(docRef, (snap) => {
                     if (snap.exists()) {
                         currentNotes = [{ id: snap.id, ...snap.data() }];
@@ -269,13 +273,23 @@
                     }
                 });
             } else {
-                // CONSULTA SEGURA: Filtra apenas as tarefas criadas pelo UID do usuário atual
-                const q = query(notesCol, where("ownerId", "==", loggedUser.uid), orderBy("ordem", "asc"));
+                if(!loggedUser) return;
+                
+                // Sem orderBy no Firebase para evitar erro de Index Composto
+                const q = query(notesCol, where("ownerId", "==", loggedUser.uid));
+                
                 onSnapshot(q, (snapshot) => {
                     currentNotes = [];
                     snapshot.forEach(doc => currentNotes.push({ id: doc.id, ...doc.data() }));
+                    
+                    // Ordenação via JavaScript pelo campo "ordem"
+                    currentNotes.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+                    
                     render();
-                }, (error) => console.log("Erro ao carregar:", error));
+                }, (error) => {
+                    console.log("Erro ao carregar:", error);
+                    alert("Erro ao ler do banco de dados: " + error.message);
+                });
             }
         }
 
@@ -372,7 +386,7 @@
                         const items = list.querySelectorAll('.note-card');
                         items.forEach((item, newIndex) => {
                             const id = item.getAttribute('data-id');
-                            updateDoc(doc(db, "kivo_tasks", id), { ordem: newIndex });
+                            updateDoc(doc(db, "kivo_tasks", id), { ordem: newIndex }).catch(err => console.log("Erro reordenar:", err));
                         });
                     }
                 });
@@ -390,12 +404,16 @@
 
             if (allDone) celebrate();
 
-            const docRef = doc(db, "kivo_tasks", noteId);
-            await updateDoc(docRef, {
-                subItems: updatedSubItems,
-                concluida: allDone,
-                data_conclusao: allDone ? formatarData() : null
-            });
+            try {
+                const docRef = doc(db, "kivo_tasks", noteId);
+                await updateDoc(docRef, {
+                    subItems: updatedSubItems,
+                    concluida: allDone,
+                    data_conclusao: allDone ? formatarData() : null
+                });
+            } catch(e) {
+                alert("Erro ao marcar tarefa: " + e.message);
+            }
         }
 
         function shareNote(id) {
@@ -491,31 +509,49 @@
             const theme = document.getElementById('themeInput').value.trim();
             if (theme === '') return;
 
-            closeModal();
-            const novaOrdem = currentNotes.length > 0 ? Math.max(...currentNotes.map(n => n.ordem || 0)) + 1 : 0;
+            if (!loggedUser && !isSharedMode) {
+                alert("Aguarde um momento conectando ao servidor, ou certifique-se de ter ativado a Autenticação Anônima no Firebase!");
+                return;
+            }
 
-            if (editingNoteId) {
-                const docRef = doc(db, "kivo_tasks", editingNoteId);
-                await updateDoc(docRef, { theme: theme, color: selectedColor, subItems: tempSubtasks, concluida: tempSubtasks.length > 0 && tempSubtasks.every(s => s.concluido) });
-            } else {
-                const newId = Date.now().toString();
-                const docRef = doc(db, "kivo_tasks", newId);
-                await setDoc(docRef, { 
-                    theme: theme, 
-                    color: selectedColor, 
-                    subItems: tempSubtasks, 
-                    concluida: false, 
-                    seen: false, 
-                    ordem: novaOrdem, 
-                    ownerId: loggedUser.uid, // Registra o ID de privacidade
-                    data_criacao: formatarData(), 
-                    data_conclusao: null, 
-                    timestamp: Date.now() 
-                });
+            try {
+                closeModal();
+                const novaOrdem = currentNotes.length > 0 ? Math.max(...currentNotes.map(n => n.ordem || 0)) + 1 : 0;
+
+                if (editingNoteId) {
+                    const docRef = doc(db, "kivo_tasks", editingNoteId);
+                    await updateDoc(docRef, { theme: theme, color: selectedColor, subItems: tempSubtasks, concluida: tempSubtasks.length > 0 && tempSubtasks.every(s => s.concluido) });
+                } else {
+                    const newId = Date.now().toString();
+                    const docRef = doc(db, "kivo_tasks", newId);
+                    await setDoc(docRef, { 
+                        theme: theme, 
+                        color: selectedColor, 
+                        subItems: tempSubtasks, 
+                        concluida: false, 
+                        seen: false, 
+                        ordem: novaOrdem, 
+                        ownerId: loggedUser.uid, 
+                        data_criacao: formatarData(), 
+                        data_conclusao: null, 
+                        timestamp: Date.now() 
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                alert("Ocorreu um erro ao salvar: " + error.message);
             }
         }
 
-        async function deleteNote(id) { if (confirm('Excluir esta nota permanentemente?')) await deleteDoc(doc(db, "kivo_tasks", id)); }
+        async function deleteNote(id) { 
+            if (confirm('Excluir esta nota permanentemente?')) {
+                try {
+                    await deleteDoc(doc(db, "kivo_tasks", id)); 
+                } catch(e) {
+                    alert("Erro ao excluir: " + e.message);
+                }
+            }
+        }
 
         document.getElementById('openCreateBtn').onclick = () => openModal(false);
         document.getElementById('closeModalBtn').onclick = closeModal;
