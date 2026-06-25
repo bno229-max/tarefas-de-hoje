@@ -79,7 +79,6 @@
             box-shadow: 3px 3px 0 #d3c4b7; position: relative; background: #fff7d6;
         }
         
-        /* Efeito de quando estiver arrastando a nota */
         .sortable-ghost { opacity: 0.4; background-color: #f0f0f0 !important; }
 
         .priority-badge {
@@ -186,22 +185,27 @@
         </div>
     </div>
 
+    <!-- Scripts do Firebase e de Autenticação -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } 
+        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // CHAVES REAIS DO PROJETO KIVO-CB6F4
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "SEU_SENDER_ID",
-            appId: "SUA_APP_ID"
+            apiKey: "AIzaSyBboZMGObuLf8yWyRByK2c0dHTgY3nPMuc",
+            authDomain: "kivo-cb6f4.firebaseapp.com",
+            projectId: "kivo-cb6f4",
+            storageBucket: "kivo-cb6f4.firebasestorage.app",
+            messagingSenderId: "1095899910476",
+            appId: "1:1095899910476:web:b5ba53d2c5a76334ce3fe9"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const notesCol = collection(db, "kivo_tasks");
 
         let currentNotes = [];
@@ -211,7 +215,8 @@
         let sharedNoteId = null;
         let selectedColor = "#fff7d6";
         let activeTab = "ativas"; 
-        let sortableInstance = null; // Instância do Drag and Drop profissional
+        let sortableInstance = null;
+        let loggedUser = null;
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('noteId')) {
@@ -221,6 +226,16 @@
             document.getElementById('openCreateBtn').style.display = 'none';
             document.getElementById('tabsBlock').style.display = 'none';
         }
+
+        // Executa Autenticação Anônima para garantir o UID de Privacidade
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loggedUser = user;
+                initApp();
+            } else {
+                signInAnonymously(auth).catch(err => console.error("Erro auth:", err));
+            }
+        });
 
         document.querySelectorAll('.color-swatch').forEach(swatch => {
             swatch.addEventListener('click', (e) => {
@@ -243,7 +258,7 @@
             render();
         };
 
-        function init() {
+        function initApp() {
             if (isSharedMode) {
                 const docRef = doc(db, "kivo_tasks", sharedNoteId);
                 updateDoc(docRef, { seen: true });
@@ -254,12 +269,13 @@
                     }
                 });
             } else {
-                const q = query(notesCol, orderBy("ordem", "asc"));
+                // CONSULTA SEGURA: Filtra apenas as tarefas criadas pelo UID do usuário atual
+                const q = query(notesCol, where("ownerId", "==", loggedUser.uid), orderBy("ordem", "asc"));
                 onSnapshot(q, (snapshot) => {
                     currentNotes = [];
                     snapshot.forEach(doc => currentNotes.push({ id: doc.id, ...doc.data() }));
                     render();
-                });
+                }, (error) => console.log("Erro ao carregar:", error));
             }
         }
 
@@ -327,6 +343,7 @@
                 list.appendChild(li);
             });
 
+            // Atribuição de cliques
             document.querySelectorAll('.custom-checkbox').forEach(el => {
                 el.onclick = (e) => {
                     e.stopPropagation();
@@ -345,14 +362,13 @@
                 };
             });
 
-            // Ativa a Biblioteca SortableJS de Arrastar e Soltar na Aba Ativas
+            // SortableJS fixo e perfeito
             if (activeTab === "ativas" && !isSharedMode) {
                 if (sortableInstance) sortableInstance.destroy();
                 sortableInstance = new Sortable(list, {
-                    handle: '.drag-handle', // Somente arrasta se pegar no ícone ☰
+                    handle: '.drag-handle',
                     animation: 200,
                     onEnd: function () {
-                        // Quando terminar de arrastar, salva no Firebase a nova ordem
                         const items = list.querySelectorAll('.note-card');
                         items.forEach((item, newIndex) => {
                             const id = item.getAttribute('data-id');
@@ -372,10 +388,7 @@
 
             const allDone = updatedSubItems.length > 0 && updatedSubItems.every(s => s.concluido);
 
-            // Se todas as tarefas acabaram de ser concluídas agora, atira os confetes!
-            if (allDone) {
-                celebrate();
-            }
+            if (allDone) celebrate();
 
             const docRef = doc(db, "kivo_tasks", noteId);
             await updateDoc(docRef, {
@@ -395,7 +408,6 @@
             note.subItems.forEach(s => {
                 msg += s.concluido ? `✅ ~${s.texto}~\n` : `⬜ ${s.texto}\n`;
             });
-            // Texto Corrigido conforme solicitado
             msg += `\nAcesse para colaborar:\n${shareUrl}`;
 
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
@@ -407,7 +419,6 @@
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             let pieces = [];
             const colors = ['#f7d05c', '#ff6b6b', '#54a0ff', '#3498db', '#25D366'];
-            
             for (let i = 0; i < 150; i++) {
                 pieces.push({
                     x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
@@ -489,7 +500,18 @@
             } else {
                 const newId = Date.now().toString();
                 const docRef = doc(db, "kivo_tasks", newId);
-                await setDoc(docRef, { theme: theme, color: selectedColor, subItems: tempSubtasks, concluida: false, seen: false, ordem: novaOrdem, data_criacao: formatarData(), data_conclusao: null, timestamp: Date.now() });
+                await setDoc(docRef, { 
+                    theme: theme, 
+                    color: selectedColor, 
+                    subItems: tempSubtasks, 
+                    concluida: false, 
+                    seen: false, 
+                    ordem: novaOrdem, 
+                    ownerId: loggedUser.uid, // Registra o ID de privacidade
+                    data_criacao: formatarData(), 
+                    data_conclusao: null, 
+                    timestamp: Date.now() 
+                });
             }
         }
 
@@ -499,8 +521,6 @@
         document.getElementById('closeModalBtn').onclick = closeModal;
         document.getElementById('addSubtaskBtn').onclick = addTempSubtask;
         document.getElementById('saveNoteBtn').onclick = saveNote;
-
-        init();
     </script>
 </body>
 </html>
