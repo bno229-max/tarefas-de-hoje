@@ -12,22 +12,35 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
     
-    <!-- Biblioteca profissional para Arrastar e Soltar (SortableJS) -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         :root {
+            /* Variáveis Modo Claro */
+            --bg-body: #dcdcdc;
             --bg-paper: #fcf6eb;
             --line-color: #d3c4b7;
-            --margin-line: #e0c8b8;
             --text-dark: #333;
+            --shadow-color: #333;
+            --modal-input-bg: #fff;
             --whatsapp-color: #25D366;
+            --note-text: #333; 
+        }
+
+        [data-theme="dark"] {
+            /* Variáveis Modo Escuro */
+            --bg-body: #121212;
+            --bg-paper: #2a2a2a;
+            --line-color: #444;
+            --text-dark: #f5f5f5;
+            --shadow-color: #000;
+            --modal-input-bg: #333;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: #dcdcdc; 
+            background-color: var(--bg-body); 
             display: flex;
             justify-content: center;
             font-family: 'Patrick Hand', cursive;
@@ -36,6 +49,7 @@
             overflow-x: hidden;
             -webkit-user-select: none;
             user-select: none; 
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .app-container {
@@ -43,21 +57,33 @@
             max-width: 400px;
             min-height: 100vh;
             background-color: var(--bg-paper);
-            background-image: 
-                linear-gradient(90deg, transparent 40px, var(--margin-line) 40px, var(--margin-line) 42px, transparent 42px),
-                repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
+            background-image: repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
             background-attachment: local;
-            padding: 20px 15px 120px 55px; 
+            padding: 20px 20px 120px 20px; 
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            transition: background-color 0.3s;
         }
 
-        header { text-align: center; margin-bottom: 15px; margin-top: 10px; }
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 26px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            outline: none;
+            transition: transform 0.2s;
+        }
+        .theme-toggle:active { transform: scale(0.8); }
+
+        header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
         
         h1 {
             font-size: 46px;
             color: #fff;
-            text-shadow: -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333, 3px 3px 0px #f7d05c;
+            text-shadow: -1px -1px 0 var(--shadow-color), 1px -1px 0 var(--shadow-color), -1px 1px 0 var(--shadow-color), 1px 1px 0 var(--shadow-color), 3px 3px 0px #f7d05c;
             letter-spacing: 2px;
             line-height: 1;
             margin-bottom: 2px;
@@ -65,24 +91,43 @@
         
         .subtitle { font-size: 20px; color: var(--text-dark); opacity: 0.7; letter-spacing: 1px; }
 
-        .tabs-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tabs-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
         .tab-btn {
-            background: #fff; border: 2px solid #333; padding: 5px 15px; font-family: inherit;
-            font-size: 18px; cursor: pointer; border-radius: 20px; box-shadow: 2px 2px 0 #333; transition: all 0.1s;
+            background: var(--bg-paper); 
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark); 
+            padding: 5px 15px; 
+            font-family: inherit;
+            font-size: 18px; 
+            cursor: pointer; 
+            border-radius: 20px; 
+            box-shadow: 2px 2px 0 var(--shadow-color); 
+            transition: all 0.1s;
         }
-        .tab-btn.active { background: #f7d05c; transform: translate(1px, 1px); box-shadow: 1px 1px 0 #333; }
+        .tab-btn.active { 
+            background: #f7d05c; 
+            color: #333; 
+            transform: translate(1px, 1px); 
+            box-shadow: 1px 1px 0 var(--shadow-color); 
+        }
 
         ul { list-style: none; }
         
         .note-card {
-            border: 2px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 25px;
-            box-shadow: 3px 3px 0 #d3c4b7; position: relative; background: #fff7d6;
+            border: 2px solid var(--text-dark); 
+            border-radius: 10px; 
+            padding: 12px; 
+            margin-bottom: 25px;
+            box-shadow: 3px 3px 0 var(--shadow-color); 
+            position: relative; 
+            background: #fff7d6;
+            color: var(--note-text); 
         }
         
         .sortable-ghost { opacity: 0.4; background-color: #f0f0f0 !important; }
 
         .priority-badge {
-            display: inline-block; padding: 1px 8px; border: 2px solid #333;
+            display: inline-block; padding: 1px 8px; border: 2px solid var(--note-text);
             border-radius: 5px; font-size: 14px; font-weight: bold; margin-bottom: 6px;
         }
         .p-max { background: #ff6b6b; color: #fff; }
@@ -90,9 +135,9 @@
         .p-min { background: #54a0ff; color: #fff; }
 
         .drag-handle {
-            position: absolute; top: 10px; right: 10px; font-size: 24px; color: #333;
-            cursor: grab; padding: 5px 10px; background: rgba(255,255,255,0.7);
-            border: 2px solid #333; border-radius: 8px; touch-action: none;
+            position: absolute; top: 10px; right: 10px; font-size: 24px; color: var(--note-text);
+            cursor: grab; padding: 5px 10px; background: rgba(255,255,255,0.5);
+            border: 2px solid var(--note-text); border-radius: 8px; touch-action: none;
         }
         .drag-handle:active { cursor: grabbing; background: #f7d05c; }
 
@@ -103,35 +148,54 @@
         .subtask-item.done span { text-decoration: line-through; opacity: 0.5; }
 
         .custom-checkbox {
-            width: 22px; height: 22px; border: 2px solid #333; background: #fff;
+            width: 22px; height: 22px; border: 2px solid var(--note-text); background: #fff;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
-            flex-shrink: 0; box-shadow: 1px 1px 0 #333;
+            flex-shrink: 0; box-shadow: 1px 1px 0 var(--note-text);
         }
-        .custom-checkbox.checked::after { content: '✘'; font-size: 18px; color: #333; }
+        .custom-checkbox.checked::after { content: '✘'; font-size: 18px; color: var(--note-text); }
 
-        .time-box { font-size: 13px; opacity: 0.6; font-family: sans-serif; margin-top: 5px; }
+        .time-box { font-size: 13px; opacity: 0.6; font-family: sans-serif; margin-top: 5px; color: var(--note-text); }
 
         .note-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 12px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.2); }
-        .action-btn { cursor: pointer; font-size: 18px; padding: 4px 8px; background: rgba(255,255,255,0.6); border: 2px solid #333; border-radius: 6px; }
+        .action-btn { cursor: pointer; font-size: 18px; padding: 4px 8px; background: rgba(255,255,255,0.6); border: 2px solid var(--note-text); border-radius: 6px; color: var(--note-text); }
         .action-btn:active { transform: scale(0.9); }
         .btn-wa { font-weight: bold; }
-        .icon-seen { font-size: 14px; color: #333; font-family: sans-serif; opacity: 0.6; margin-right: auto; }
+        .icon-seen { font-size: 14px; font-family: sans-serif; opacity: 0.7; margin-right: auto; }
 
-        .floating-add-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: #f7d05c; border: 2px solid #333; border-radius: 50%; font-size: 36px; font-weight: bold; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 0 #333; z-index: 1000; }
-        .floating-add-btn:active { transform: translate(-50%, 2px); box-shadow: 2px 2px 0 #333; }
+        .floating-add-btn { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            width: 60px; height: 60px; background: #f7d05c; border: 2px solid var(--shadow-color); 
+            border-radius: 50%; font-size: 36px; font-weight: bold; color: #333; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 4px 4px 0 var(--shadow-color); z-index: 1000; 
+        }
+        .floating-add-btn:active { transform: translate(-50%, 2px); box-shadow: 2px 2px 0 var(--shadow-color); }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--bg-paper); width: 100%; max-width: 360px; border-radius: 15px; padding: 20px; border: 2px solid #333; box-shadow: 4px 4px 0 #333; position: relative; }
-        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; font-weight: bold; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--bg-paper); width: 100%; max-width: 360px; border-radius: 15px; padding: 20px; border: 2px solid var(--text-dark); box-shadow: 4px 4px 0 var(--shadow-color); position: relative; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; font-weight: bold; color: var(--text-dark); }
+        .modal-title { color: var(--text-dark); }
 
         .color-picker { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
-        .color-swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; cursor: pointer; }
+        .color-swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--text-dark); cursor: pointer; }
         .color-swatch.selected { transform: scale(1.2); border-width: 3px; }
 
-        .input-box { width: 100%; background: #fff; border: 2px solid #333; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 20px; outline: none; margin-bottom: 12px; }
-        .subtasks-setup-area { max-height: 120px; overflow-y: auto; margin-bottom: 15px; }
-        .setup-subtask-item { font-size: 18px; padding: 2px 0; border-bottom: 1px dashed #ccc; }
-        .modal-btn { width: 100%; padding: 12px; background: #f7d05c; border: 2px solid #333; border-radius: 8px; font-family: inherit; font-size: 20px; cursor: pointer; box-shadow: 2px 2px 0 #333; }
+        .input-box { width: 100%; background: var(--modal-input-bg); color: var(--text-dark); border: 2px solid var(--text-dark); border-radius: 8px; padding: 10px; font-family: inherit; font-size: 20px; outline: none; margin-bottom: 12px; }
+        
+        .subtasks-setup-area { max-height: 120px; overflow-y: auto; margin-bottom: 15px; color: var(--text-dark); }
+        
+        /* Estilo da linha de subtítulo dentro do modal */
+        .setup-subtask-item { 
+            font-size: 18px; 
+            padding: 4px 0; 
+            border-bottom: 1px dashed var(--line-color); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .delete-temp-btn { cursor: pointer; color: #ff6b6b; font-weight: bold; margin-left: 10px; padding: 0 5px; }
+
+        .modal-btn { width: 100%; padding: 12px; background: #f7d05c; color: #333; border: 2px solid var(--text-dark); border-radius: 8px; font-family: inherit; font-size: 20px; cursor: pointer; box-shadow: 2px 2px 0 var(--shadow-color); }
 
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
         .shared-mode-tag { background: #3498db; color: white; padding: 4px; border-radius: 5px; text-align: center; margin-bottom: 10px; font-size: 16px; }
@@ -142,6 +206,8 @@
     <canvas id="confetti-canvas"></canvas>
 
     <div class="app-container">
+        <button class="theme-toggle" id="themeToggleBtn" title="Alternar Modo Escuro">🌙</button>
+
         <header>
             <h1>Kivo Notes</h1>
             <p class="subtitle">Notas e Tarefas</p>
@@ -151,7 +217,7 @@
 
         <div class="tabs-container" id="tabsBlock">
             <button class="tab-btn active" id="btnAtivas">Ativas</button>
-            <button class="tab-btn" id="btnHistorico">Histórico</button>
+            <button class="tab-btn" id="btnConcluidas">Concluídas</button>
         </div>
 
         <ul id="noteList"></ul>
@@ -176,7 +242,7 @@
             
             <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                 <input type="text" id="subtaskInput" class="input-box" style="margin-bottom: 0;" placeholder="Adicionar Subtítulo...">
-                <button class="modal-btn" style="width: 50px; padding: 0; background: #fff;" id="addSubtaskBtn">+</button>
+                <button class="modal-btn" style="width: 50px; padding: 0;" id="addSubtaskBtn">+</button>
             </div>
 
             <div class="subtasks-setup-area" id="subtasksSetupList"></div>
@@ -185,7 +251,6 @@
         </div>
     </div>
 
-    <!-- Scripts do Firebase e de Autenticação -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } 
@@ -218,6 +283,28 @@
         let sortableInstance = null;
         let loggedUser = null;
 
+        // --- MODO ESCURO / CLARO ---
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        let isDarkMode = localStorage.getItem('kivoTheme') === 'dark';
+
+        function applyTheme() {
+            if (isDarkMode) {
+                document.body.setAttribute('data-theme', 'dark');
+                themeToggleBtn.innerText = '☀️';
+            } else {
+                document.body.removeAttribute('data-theme');
+                themeToggleBtn.innerText = '🌙';
+            }
+        }
+        applyTheme();
+
+        themeToggleBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('kivoTheme', isDarkMode ? 'dark' : 'light');
+            applyTheme();
+        });
+
+        // --- MODO COMPARTILHADO ---
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('noteId')) {
             isSharedMode = true;
@@ -227,7 +314,6 @@
             document.getElementById('tabsBlock').style.display = 'none';
         }
 
-        // Executa Autenticação Anônima para garantir o UID de Privacidade
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loggedUser = user;
@@ -251,17 +337,16 @@
         document.getElementById('btnAtivas').onclick = () => {
             activeTab = "ativas";
             document.getElementById('btnAtivas').classList.add('active');
-            document.getElementById('btnHistorico').classList.remove('active');
+            document.getElementById('btnConcluidas').classList.remove('active');
             render();
         };
-        document.getElementById('btnHistorico').onclick = () => {
-            activeTab = "historico";
-            document.getElementById('btnHistorico').classList.add('active');
+        document.getElementById('btnConcluidas').onclick = () => {
+            activeTab = "concluidas";
+            document.getElementById('btnConcluidas').classList.add('active');
             document.getElementById('btnAtivas').classList.remove('active');
             render();
         };
 
-        // FUNÇÃO ATUALIZADA: Resolve o problema da tela em branco organizando a ordem no próprio JavaScript
         function initApp() {
             if (isSharedMode) {
                 const docRef = doc(db, "kivo_tasks", sharedNoteId);
@@ -275,16 +360,11 @@
             } else {
                 if(!loggedUser) return;
                 
-                // Sem orderBy no Firebase para evitar erro de Index Composto
                 const q = query(notesCol, where("ownerId", "==", loggedUser.uid));
-                
                 onSnapshot(q, (snapshot) => {
                     currentNotes = [];
                     snapshot.forEach(doc => currentNotes.push({ id: doc.id, ...doc.data() }));
-                    
-                    // Ordenação via JavaScript pelo campo "ordem"
                     currentNotes.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-                    
                     render();
                 }, (error) => {
                     console.log("Erro ao carregar:", error);
@@ -304,7 +384,7 @@
 
             let filtered = currentNotes;
             if (!isSharedMode) {
-                filtered = currentNotes.filter(note => activeTab === "historico" ? note.concluida === true : !note.concluida);
+                filtered = currentNotes.filter(note => activeTab === "concluidas" ? note.concluida === true : !note.concluida);
             }
 
             filtered.forEach((note, index) => {
@@ -336,9 +416,10 @@
 
                 let datesHtml = `<div class="time-box">✎ Criado em: ${note.data_criacao || 'Sem data'}</div>`;
                 if (note.concluida && note.data_conclusao) {
-                    datesHtml += `<div class="time-box" style="color: #27ae60; font-weight: bold;">✓ Concluído em: ${note.data_conclusao}</div>`;
+                    datesHtml += `<div class="time-box" style="color: #1e8449; font-weight: bold;">✓ Concluído em: ${note.data_conclusao}</div>`;
                 }
 
+                // REMOVIDA A BOLA VERDE DO BOTÃO, MANTIDO APENAS O AVIÃOZINHO DE PAPEL (✈️)
                 li.innerHTML = `
                     ${(activeTab === "ativas" && !isSharedMode) ? '<div class="drag-handle" title="Segure para arrastar">☰</div>' : ''}
                     ${priorityHtml}
@@ -349,7 +430,7 @@
                     <div class="subtasks-list">${subtasksHtml}</div>
                     ${datesHtml}
                     <div class="note-actions">
-                        <button class="action-btn btn-wa" data-note-id="${note.id}" data-action="share">🟢 WhatsApp</button>
+                        <button class="action-btn btn-wa" data-note-id="${note.id}" data-action="share">✈️ WhatsApp</button>
                         <button class="action-btn" data-note-id="${note.id}" data-action="edit">✏️</button>
                         <button class="action-btn" data-note-id="${note.id}" data-action="delete">🗑️</button>
                     </div>
@@ -357,7 +438,6 @@
                 list.appendChild(li);
             });
 
-            // Atribuição de cliques
             document.querySelectorAll('.custom-checkbox').forEach(el => {
                 el.onclick = (e) => {
                     e.stopPropagation();
@@ -376,7 +456,6 @@
                 };
             });
 
-            // SortableJS fixo e perfeito
             if (activeTab === "ativas" && !isSharedMode) {
                 if (sortableInstance) sortableInstance.destroy();
                 sortableInstance = new Sortable(list, {
@@ -493,14 +572,27 @@
             renderTempSubtasks();
         }
 
+        // FUNÇÃO ATUALIZADA: Adiciona botão de excluir individual (❌) em cada subtítulo no modal de edição
         function renderTempSubtasks() {
             const container = document.getElementById('subtasksSetupList');
             container.innerHTML = '';
-            tempSubtasks.forEach(s => {
+            tempSubtasks.forEach((s, idx) => {
                 const d = document.createElement('div');
                 d.className = 'setup-subtask-item';
-                d.innerText = `▪ ${s.texto}`;
+                d.innerHTML = `
+                    <span>▪ ${s.texto}</span>
+                    <span class="delete-temp-btn" data-index="${idx}">❌</span>
+                `;
                 container.appendChild(d);
+            });
+
+            // Adiciona a ação de clique para remover o item do array temporário
+            container.querySelectorAll('.delete-temp-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const idx = parseInt(btn.getAttribute('data-index'));
+                    tempSubtasks.splice(idx, 1);
+                    renderTempSubtasks();
+                };
             });
         }
 
@@ -515,12 +607,16 @@
             }
 
             try {
-                closeModal();
                 const novaOrdem = currentNotes.length > 0 ? Math.max(...currentNotes.map(n => n.ordem || 0)) + 1 : 0;
 
                 if (editingNoteId) {
                     const docRef = doc(db, "kivo_tasks", editingNoteId);
-                    await updateDoc(docRef, { theme: theme, color: selectedColor, subItems: tempSubtasks, concluida: tempSubtasks.length > 0 && tempSubtasks.every(s => s.concluido) });
+                    await updateDoc(docRef, { 
+                        theme: theme, 
+                        color: selectedColor, 
+                        subItems: tempSubtasks, 
+                        concluida: tempSubtasks.length > 0 && tempSubtasks.every(s => s.concluido) 
+                    });
                 } else {
                     const newId = Date.now().toString();
                     const docRef = doc(db, "kivo_tasks", newId);
@@ -537,6 +633,7 @@
                         timestamp: Date.now() 
                     });
                 }
+                closeModal(); 
             } catch (error) {
                 console.error("Erro ao salvar:", error);
                 alert("Ocorreu um erro ao salvar: " + error.message);
