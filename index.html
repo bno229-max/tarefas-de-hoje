@@ -11,6 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <!-- Biblioteca profissional para Arrastar e Soltar (SortableJS) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         :root {
@@ -18,6 +21,7 @@
             --line-color: #d3c4b7;
             --margin-line: #e0c8b8;
             --text-dark: #333;
+            --whatsapp-color: #25D366;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,14 +47,13 @@
                 linear-gradient(90deg, transparent 40px, var(--margin-line) 40px, var(--margin-line) 42px, transparent 42px),
                 repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
             background-attachment: local;
-            padding: 20px 15px 95px 55px; 
+            padding: 20px 15px 120px 55px; 
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.15);
         }
 
-        header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        header { text-align: center; margin-bottom: 15px; margin-top: 10px; }
         
-        /* CORREÇÃO DO TÍTULO CONFORME SOLICITADO */
         h1 {
             font-size: 46px;
             color: #fff;
@@ -60,209 +63,79 @@
             margin-bottom: 2px;
         }
         
-        /* NOVO SUBTÍTULO EM FONTE MENOR */
-        .subtitle {
-            font-size: 20px;
-            color: var(--text-dark);
-            opacity: 0.7;
-            letter-spacing: 1px;
-        }
+        .subtitle { font-size: 20px; color: var(--text-dark); opacity: 0.7; letter-spacing: 1px; }
 
-        .input-area {
-            background: #fff;
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 25px;
-            box-shadow: 3px 3px 0 #d3c4b7;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        .tabs-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            background: #fff; border: 2px solid #333; padding: 5px 15px; font-family: inherit;
+            font-size: 18px; cursor: pointer; border-radius: 20px; box-shadow: 2px 2px 0 #333; transition: all 0.1s;
         }
-
-        input[type="text"] {
-            flex: 1;
-            border: none;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 22px;
-            outline: none;
-            background: transparent;
-        }
-
-        .add-btn {
-            background: #fff;
-            border: 2px solid #333;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            box-shadow: 2px 2px 0 #f7d05c;
-            transition: 0.1s;
-        }
-        .add-btn:active { box-shadow: 0 0 0 transparent; transform: translate(2px, 2px); }
+        .tab-btn.active { background: #f7d05c; transform: translate(1px, 1px); box-shadow: 1px 1px 0 #333; }
 
         ul { list-style: none; }
         
-        li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
-            position: relative;
-            touch-action: none;
+        .note-card {
+            border: 2px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 25px;
+            box-shadow: 3px 3px 0 #d3c4b7; position: relative; background: #fff7d6;
         }
+        
+        /* Efeito de quando estiver arrastando a nota */
+        .sortable-ghost { opacity: 0.4; background-color: #f0f0f0 !important; }
 
-        li.dragging { opacity: 0.5; transform: scale(0.98); }
+        .priority-badge {
+            display: inline-block; padding: 1px 8px; border: 2px solid #333;
+            border-radius: 5px; font-size: 14px; font-weight: bold; margin-bottom: 6px;
+        }
+        .p-max { background: #ff6b6b; color: #fff; }
+        .p-med { background: #f7d05c; color: #333; }
+        .p-min { background: #54a0ff; color: #fff; }
+
+        .drag-handle {
+            position: absolute; top: 10px; right: 10px; font-size: 24px; color: #333;
+            cursor: grab; padding: 5px 10px; background: rgba(255,255,255,0.7);
+            border: 2px solid #333; border-radius: 8px; touch-action: none;
+        }
+        .drag-handle:active { cursor: grabbing; background: #f7d05c; }
+
+        .note-theme { font-size: 24px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.2); padding-bottom: 4px; padding-right: 45px; }
+
+        .subtasks-list { margin-left: 5px; margin-top: 5px; }
+        .subtask-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 20px; }
+        .subtask-item.done span { text-decoration: line-through; opacity: 0.5; }
 
         .custom-checkbox {
-            width: 26px;
-            height: 26px;
-            border: 2px solid #333;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            box-shadow: 2px 2px 0 #d3c4b7;
+            width: 22px; height: 22px; border: 2px solid #333; background: #fff;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            flex-shrink: 0; box-shadow: 1px 1px 0 #333;
         }
-        .custom-checkbox.checked::after { content: '✘'; font-size: 24px; color: #333; }
+        .custom-checkbox.checked::after { content: '✘'; font-size: 18px; color: #333; }
 
-        .task-pill {
-            flex: 1;
-            padding: 8px 15px;
-            border-radius: 25px;
-            color: #333;
-            border: 2px solid transparent;
-            cursor: grab;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            transition: transform 0.1s;
-        }
+        .time-box { font-size: 13px; opacity: 0.6; font-family: sans-serif; margin-top: 5px; }
 
-        .cat-fazer { background-color: #e28a55; color: white;} 
-        .cat-agendar { background-color: #f4bc4c; } 
-        .cat-delegar { background-color: #85c1e9; } 
-        .cat-deletas { background-color: #bb8fce; color: white;} /* Lilás para a Lixeira */
+        .note-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 12px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.2); }
+        .action-btn { cursor: pointer; font-size: 18px; padding: 4px 8px; background: rgba(255,255,255,0.6); border: 2px solid #333; border-radius: 6px; }
+        .action-btn:active { transform: scale(0.9); }
+        .btn-wa { font-weight: bold; }
+        .icon-seen { font-size: 14px; color: #333; font-family: sans-serif; opacity: 0.6; margin-right: auto; }
 
-        .task-title { font-size: 20px; line-height: 1.1; pointer-events: none; }
-        .task-time { font-size: 13px; opacity: 0.7; font-family: sans-serif; margin-top: 4px; pointer-events: none; }
+        .floating-add-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: #f7d05c; border: 2px solid #333; border-radius: 50%; font-size: 36px; font-weight: bold; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 0 #333; z-index: 1000; }
+        .floating-add-btn:active { transform: translate(-50%, 2px); box-shadow: 2px 2px 0 #333; }
 
-        .completed .task-pill {
-            background-color: transparent !important;
-            border-color: #999;
-            opacity: 0.6;
-            color: #333;
-            cursor: default;
-        }
-        .completed .task-title { text-decoration: line-through; color: #555; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--bg-paper); width: 100%; max-width: 360px; border-radius: 15px; padding: 20px; border: 2px solid #333; box-shadow: 4px 4px 0 #333; position: relative; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; font-weight: bold; }
 
-        .footer-deco {
-            font-family: 'Caveat', cursive;
-            font-size: 45px;
-            color: #c08480;
-            text-align: right;
-            margin-top: 30px;
-            transform: rotate(-10deg);
-            margin-bottom: 30px;
-        }
+        .color-picker { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
+        .color-swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; cursor: pointer; }
+        .color-swatch.selected { transform: scale(1.2); border-width: 3px; }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 20px);
-            max-width: 380px;
-            background: #ffffaf; 
-            border: 2px solid #333;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            box-shadow: 4px 4px 0 #333;
-            z-index: 900;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            flex: 1;
-            transition: 0.2s;
-        }
-
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
-        .nav-label { font-size: 13px; font-weight: bold; }
-
-        .nav-item.active {
-            transform: scale(1.1);
-            color: #e28a55;
-            text-shadow: 1px 1px 0px #333;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: var(--bg-paper);
-            width: 100%;
-            max-width: 360px;
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px solid #333;
-            box-shadow: 4px 4px 0 #333;
-            position: relative;
-            background-image: repeating-linear-gradient(transparent, transparent 39px, var(--line-color) 39px, var(--line-color) 40px);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 10px; right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .modal-title { font-size: 26px; margin-bottom: 15px; color: #333; border-bottom: 2px dashed #ccc; padding-bottom: 3px; }
-        .sub-items-list { margin-top: 15px; max-height: 220px; overflow-y: auto; }
-        .sub-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 20px; }
-        .sub-item.completed span { text-decoration: line-through; opacity: 0.5; }
-
-        .menu-btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: white;
-            border: 2px solid #333;
-            border-radius: 10px;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 18px;
-            cursor: pointer;
-            text-align: left;
-            box-shadow: 2px 2px 0 #333;
-        }
-        .menu-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #333; }
-        .btn-danger-menu { color: #ff4757; border-color: #ff4757; }
+        .input-box { width: 100%; background: #fff; border: 2px solid #333; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 20px; outline: none; margin-bottom: 12px; }
+        .subtasks-setup-area { max-height: 120px; overflow-y: auto; margin-bottom: 15px; }
+        .setup-subtask-item { font-size: 18px; padding: 2px 0; border-bottom: 1px dashed #ccc; }
+        .modal-btn { width: 100%; padding: 12px; background: #f7d05c; border: 2px solid #333; border-radius: 8px; font-family: inherit; font-size: 20px; cursor: pointer; box-shadow: 2px 2px 0 #333; }
 
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        .shared-mode-tag { background: #3498db; color: white; padding: 4px; border-radius: 5px; text-align: center; margin-bottom: 10px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -275,71 +148,119 @@
             <p class="subtitle">Notas e Tarefas</p>
         </header>
 
-        <div class="input-area">
-            <input type="text" id="titulo" placeholder="Crie uma nova tarefa...">
-            <button class="add-btn" onclick="saveTask()">+</button>
+        <div id="sharedBadge" class="shared-mode-tag" style="display: none;">🔗 Modo Compartilhado Ativo</div>
+
+        <div class="tabs-container" id="tabsBlock">
+            <button class="tab-btn active" id="btnAtivas">Ativas</button>
+            <button class="tab-btn" id="btnHistorico">Histórico</button>
         </div>
 
-        <ul id="taskList"></ul>
-
-        <div class="footer-deco">yes!</div>
+        <ul id="noteList"></ul>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" id="tab-fazer" onclick="switchTab('fazer')">
-            <span class="nav-icon">🔥</span>
-            <span class="nav-label">Fazer Agora</span>
-        </div>
-        <div class="nav-item" id="tab-agendar" onclick="switchTab('agendar')">
-            <span class="nav-icon">🕒</span>
-            <span class="nav-label">Agendar</span>
-        </div>
-        <div class="nav-item" id="tab-delegar" onclick="switchTab('delegar')">
-            <span class="nav-icon">👥</span>
-            <span class="nav-label">Delegar</span>
-        </div>
-        <div class="nav-item" id="tab-deletas" onclick="switchTab('deletas')">
-            <span class="nav-icon">🗑️</span>
-            <span class="nav-label">Deletas</span>
-        </div>
-    </div>
+    <button class="floating-add-btn" id="openCreateBtn">+</button>
 
-    <div class="modal-overlay" id="subItemModal">
+    <div class="modal-overlay" id="noteModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">✖</span>
-            <h2 class="modal-title" id="modalTaskTitle">Itens</h2>
+            <span class="close-modal" id="closeModalBtn">✖</span>
+            <h2 class="modal-title" id="modalTitle">Nova Nota</h2>
             
-            <div class="input-area" style="margin-bottom: 15px; box-shadow: none;">
-                <input type="text" id="subItemInput" placeholder="Adicionar sub-item...">
-                <button class="add-btn" onclick="addSubItem()">+</button>
+            <div class="color-picker" id="colorPicker">
+                <div class="color-swatch selected" style="background: #fff7d6" data-color="#fff7d6"></div>
+                <div class="color-swatch" style="background: #d6eaf8" data-color="#d6eaf8"></div>
+                <div class="color-swatch" style="background: #d4efdf" data-color="#d4efdf"></div>
+                <div class="color-swatch" style="background: #fadbd8" data-color="#fadbd8"></div>
+                <div class="color-swatch" style="background: #ebdef0" data-color="#ebdef0"></div>
             </div>
 
-            <ul class="sub-items-list" id="subItemsList"></ul>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="actionMenuModal">
-        <div class="modal-content" style="background-image: none;">
-            <span class="close-modal" onclick="closeActionMenu()">✖</span>
-            <h2 class="modal-title" id="actionMenuTitle">Opções da Tarefa</h2>
+            <input type="text" id="themeInput" class="input-box" placeholder="Tema da Nota...">
             
-            <button class="menu-btn" onclick="shareOnWhatsApp()">📤 Compartilhar no WhatsApp</button>
-            <button class="menu-btn btn-danger-menu" id="deleteBtn" onclick="deleteCurrentTask()">🗑️ Excluir</button>
+            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                <input type="text" id="subtaskInput" class="input-box" style="margin-bottom: 0;" placeholder="Adicionar Subtítulo...">
+                <button class="modal-btn" style="width: 50px; padding: 0; background: #fff;" id="addSubtaskBtn">+</button>
+            </div>
+
+            <div class="subtasks-setup-area" id="subtasksSetupList"></div>
+            
+            <button class="modal-btn" id="saveNoteBtn">Salvar Nota</button>
         </div>
     </div>
 
-    <script>
-        // Nova versão do banco local para limpar os testes anteriores
-        let tasks = JSON.parse(localStorage.getItem('kivoNotesDataV2')) || [];
-        
-        let currentTaskId = null;
-        let activeQuadrant = 'fazer'; 
-        
-        let longPressTimer;
-        let didLongPress = false;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } 
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        function persistData() {
-            localStorage.setItem('kivoNotesDataV2', JSON.stringify(tasks));
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SUA_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const notesCol = collection(db, "kivo_tasks");
+
+        let currentNotes = [];
+        let tempSubtasks = [];
+        let editingNoteId = null;
+        let isSharedMode = false;
+        let sharedNoteId = null;
+        let selectedColor = "#fff7d6";
+        let activeTab = "ativas"; 
+        let sortableInstance = null; // Instância do Drag and Drop profissional
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('noteId')) {
+            isSharedMode = true;
+            sharedNoteId = urlParams.get('noteId');
+            document.getElementById('sharedBadge').style.display = 'block';
+            document.getElementById('openCreateBtn').style.display = 'none';
+            document.getElementById('tabsBlock').style.display = 'none';
+        }
+
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedColor = e.target.getAttribute('data-color');
+            });
+        });
+
+        document.getElementById('btnAtivas').onclick = () => {
+            activeTab = "ativas";
+            document.getElementById('btnAtivas').classList.add('active');
+            document.getElementById('btnHistorico').classList.remove('active');
+            render();
+        };
+        document.getElementById('btnHistorico').onclick = () => {
+            activeTab = "historico";
+            document.getElementById('btnHistorico').classList.add('active');
+            document.getElementById('btnAtivas').classList.remove('active');
+            render();
+        };
+
+        function init() {
+            if (isSharedMode) {
+                const docRef = doc(db, "kivo_tasks", sharedNoteId);
+                updateDoc(docRef, { seen: true });
+                onSnapshot(docRef, (snap) => {
+                    if (snap.exists()) {
+                        currentNotes = [{ id: snap.id, ...snap.data() }];
+                        render();
+                    }
+                });
+            } else {
+                const q = query(notesCol, orderBy("ordem", "asc"));
+                onSnapshot(q, (snapshot) => {
+                    currentNotes = [];
+                    snapshot.forEach(doc => currentNotes.push({ id: doc.id, ...doc.data() }));
+                    render();
+                });
+            }
         }
 
         function formatarData() {
@@ -347,346 +268,239 @@
             return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')} às ${data.getHours().toString().padStart(2, '0')}:${data.getMinutes().toString().padStart(2, '0')}`;
         }
 
-        function switchTab(quadrant) {
-            activeQuadrant = quadrant;
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${quadrant}`).classList.add('active');
-            renderTasks();
-        }
-
-        function renderTasks() {
-            const list = document.getElementById('taskList');
+        function render() {
+            const list = document.getElementById('noteList');
             list.innerHTML = '';
 
-            const filteredTasks = tasks.filter(t => t.quadrante === activeQuadrant);
+            let filtered = currentNotes;
+            if (!isSharedMode) {
+                filtered = currentNotes.filter(note => activeTab === "historico" ? note.concluida === true : !note.concluida);
+            }
 
-            filteredTasks.forEach((task) => {
+            filtered.forEach((note, index) => {
                 const li = document.createElement('li');
-                // Se estiver na aba de deletadas, desativa o arrastar e soltar
-                li.setAttribute('draggable', (task.concluida || activeQuadrant === 'deletas') ? 'false' : 'true');
-                li.setAttribute('data-id', task.id);
-                
-                const timeText = task.concluida ? `✓ Concluído: ${task.data_conclusao}` : `✎ Criado: ${task.data_criacao}`;
+                li.className = 'note-card';
+                li.style.backgroundColor = note.color || '#fff7d6';
+                li.setAttribute('data-id', note.id);
+
+                let priorityHtml = '';
+                if (activeTab === "ativas" && !isSharedMode) {
+                    if (index === 0) priorityHtml = `<span class="priority-badge p-max">🔴 1º Prioridade Máxima</span>`;
+                    else if (index === 1) priorityHtml = `<span class="priority-badge p-med">🟡 2º Prioridade Média</span>`;
+                    else if (index === 2) priorityHtml = `<span class="priority-badge p-min">🔵 3º Prioridade Baixa</span>`;
+                }
+
+                const seenHtml = (note.seen && !isSharedMode) ? `<span class="icon-seen">👁️ visto</span>` : '';
+
+                let subtasksHtml = '';
+                if (note.subItems && note.subItems.length > 0) {
+                    note.subItems.forEach((sub, subIdx) => {
+                        subtasksHtml += `
+                            <div class="subtask-item ${sub.concluido ? 'done' : ''}">
+                                <div class="custom-checkbox ${sub.concluido ? 'checked' : ''}" data-note-id="${note.id}" data-sub-idx="${subIdx}"></div>
+                                <span>${sub.texto}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                let datesHtml = `<div class="time-box">✎ Criado em: ${note.data_criacao || 'Sem data'}</div>`;
+                if (note.concluida && note.data_conclusao) {
+                    datesHtml += `<div class="time-box" style="color: #27ae60; font-weight: bold;">✓ Concluído em: ${note.data_conclusao}</div>`;
+                }
 
                 li.innerHTML = `
-                    <div class="custom-checkbox ${task.concluida ? 'checked' : ''}" onclick="toggleStatus('${task.id}')"></div>
-                    <div class="task-pill cat-${task.quadrante}" 
-                         onmousedown="startPress(event, '${task.id}')" 
-                         onmouseup="cancelPress()" 
-                         onmouseleave="cancelPress()"
-                         ontouchstart="startPress(event, '${task.id}')" 
-                         ontouchend="cancelPress()" 
-                         ontouchmove="cancelPress()"
-                         onclick="handlePillClick(event, '${task.id}')">
-                        <span class="task-title">${task.titulo}</span>
-                        <div class="task-time">${timeText}</div>
+                    ${(activeTab === "ativas" && !isSharedMode) ? '<div class="drag-handle" title="Segure para arrastar">☰</div>' : ''}
+                    ${priorityHtml}
+                    <div class="note-theme">
+                        <span>📌 ${note.theme}</span>
+                        ${seenHtml}
+                    </div>
+                    <div class="subtasks-list">${subtasksHtml}</div>
+                    ${datesHtml}
+                    <div class="note-actions">
+                        <button class="action-btn btn-wa" data-note-id="${note.id}" data-action="share">🟢 WhatsApp</button>
+                        <button class="action-btn" data-note-id="${note.id}" data-action="edit">✏️</button>
+                        <button class="action-btn" data-note-id="${note.id}" data-action="delete">🗑️</button>
                     </div>
                 `;
-                
-                if(task.concluida) li.classList.add('completed');
                 list.appendChild(li);
-                
-                if(!task.concluida && activeQuadrant !== 'deletas') setupDragAndDropEvents(li);
-            });
-        }
-
-        function saveTask() {
-            const titulo = document.getElementById('titulo').value.trim();
-            if (titulo === '') return;
-
-            // Se o usuário criar uma nota estando dentro da lixeira, força ela a ir pro "Fazer Agora"
-            const spawnQuadrant = activeQuadrant === 'deletas' ? 'fazer' : activeQuadrant;
-
-            const newTask = {
-                id: Date.now().toString(),
-                titulo: titulo,
-                concluida: false,
-                subItems: [],
-                data_criacao: formatarData(),
-                data_conclusao: null,
-                quadrante: spawnQuadrant 
-            };
-
-            tasks.unshift(newTask);
-            document.getElementById('titulo').value = '';
-            
-            if(activeQuadrant === 'deletas') switchTab('fazer');
-            else { persistData(); renderTasks(); }
-        }
-
-        function toggleStatus(id) {
-            let turnedOn = false; 
-            
-            tasks = tasks.map(task => {
-                if (task.id === id) {
-                    const isNowCompleted = !task.concluida;
-                    if (isNowCompleted) turnedOn = true; 
-                    return { 
-                        ...task, 
-                        concluida: isNowCompleted,
-                        data_conclusao: isNowCompleted ? formatarData() : null
-                    };
-                }
-                return task;
             });
 
-            tasks.sort((a, b) => a.concluida - b.concluida);
+            document.querySelectorAll('.custom-checkbox').forEach(el => {
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleSubtask(el.getAttribute('data-note-id'), el.getAttribute('data-sub-idx'));
+                };
+            });
 
-            persistData();
-            renderTasks();
-            
-            if (turnedOn) celebrate();
-        }
+            document.querySelectorAll('.action-btn').forEach(el => {
+                el.onclick = (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const id = el.getAttribute('data-note-id');
+                    const act = el.getAttribute('data-action');
+                    if (act === 'share') shareNote(id);
+                    if (act === 'edit') openModal(true, id);
+                    if (act === 'delete') deleteNote(id);
+                };
+            });
 
-        function startPress(e, id) {
-            didLongPress = false;
-            longPressTimer = setTimeout(() => {
-                didLongPress = true;
-                if (navigator.vibrate) navigator.vibrate(50);
-                openActionMenu(id);
-            }, 600); 
-        }
-
-        function cancelPress() { clearTimeout(longPressTimer); }
-
-        function handlePillClick(e, id) {
-            if (didLongPress) {
-                e.preventDefault();
-                return;
-            }
-            openModal(id);
-        }
-
-        function openActionMenu(id) {
-            currentTaskId = id;
-            const task = tasks.find(t => t.id === id);
-            document.getElementById('actionMenuTitle').innerText = task.titulo;
-            
-            // LÓGICA DINÂMICA DE EXCLUSÃO DA LIXEIRA
-            const deleteBtn = document.getElementById('deleteBtn');
-            if (task.quadrante === 'deletas') {
-                deleteBtn.innerText = '🗑️ Excluir Permanentemente';
-            } else {
-                deleteBtn.innerText = '🗑️ Mover para Deletas';
-            }
-
-            document.getElementById('actionMenuModal').style.display = 'flex';
-        }
-
-        function closeActionMenu() {
-            document.getElementById('actionMenuModal').style.display = 'none';
-            currentTaskId = null;
-        }
-
-        function shareOnWhatsApp() {
-            const task = tasks.find(t => t.id === currentTaskId);
-            if (!task) return;
-
-            const labels = { fazer: '🔥 FAZER AGORA', agendar: '🕒 AGENDAR', delegar: '👥 DELEGAR', deletas: '🗑️ DELETAS' };
-            
-            let mensagem = `*Kivo Notes - ${labels[task.quadrante]}*\n`;
-            mensagem += `📌 *Lista: ${task.titulo}*\n`;
-            mensagem += `_Status: ${task.concluida ? 'Concluída' : 'Em andamento'}_ \n\n`;
-
-            if (task.subItems && task.subItems.length > 0) {
-                task.subItems.forEach(item => {
-                    mensagem += item.concluido ? `✅ ~${item.texto}~\n` : `⬜ ${item.texto}\n`;
+            // Ativa a Biblioteca SortableJS de Arrastar e Soltar na Aba Ativas
+            if (activeTab === "ativas" && !isSharedMode) {
+                if (sortableInstance) sortableInstance.destroy();
+                sortableInstance = new Sortable(list, {
+                    handle: '.drag-handle', // Somente arrasta se pegar no ícone ☰
+                    animation: 200,
+                    onEnd: function () {
+                        // Quando terminar de arrastar, salva no Firebase a nova ordem
+                        const items = list.querySelectorAll('.note-card');
+                        items.forEach((item, newIndex) => {
+                            const id = item.getAttribute('data-id');
+                            updateDoc(doc(db, "kivo_tasks", id), { ordem: newIndex });
+                        });
+                    }
                 });
-            } else {
-                mensagem += `_(Nenhum sub-item adicionado)_`;
             }
-
-            const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
-            window.open(urlWhatsApp, '_blank');
-            closeActionMenu();
         }
 
-        // ALTERAÇÃO DO FLUXO DE EXCLUSÃO CONFORME ENUNCIADO (LIXEIRA FLUIDA)
-        function deleteCurrentTask() {
-            const task = tasks.find(t => t.id === currentTaskId);
-            if (!task) return;
+        async function toggleSubtask(noteId, index) {
+            const note = currentNotes.find(n => n.id === noteId);
+            if (!note) return;
 
-            if (task.quadrante !== 'deletas') {
-                // Se veio de outra aba, apenas MOVIMENTA para a aba Deletas
-                task.quadrante = 'deletas';
-                persistData();
-                renderTasks();
-                closeActionMenu();
-            } else {
-                // Se já estava na lixeira, aí sim DETONA permanentemente
-                if (confirm('Tem certeza que deseja apagar permanentemente do dispositivo? Esta ação é irreversível.')) {
-                    tasks = tasks.filter(t => t.id !== currentTaskId);
-                    persistData();
-                    renderTasks();
-                    closeActionMenu();
-                }
+            const updatedSubItems = [...note.subItems];
+            updatedSubItems[index].concluido = !updatedSubItems[index].concluido;
+
+            const allDone = updatedSubItems.length > 0 && updatedSubItems.every(s => s.concluido);
+
+            // Se todas as tarefas acabaram de ser concluídas agora, atira os confetes!
+            if (allDone) {
+                celebrate();
             }
+
+            const docRef = doc(db, "kivo_tasks", noteId);
+            await updateDoc(docRef, {
+                subItems: updatedSubItems,
+                concluida: allDone,
+                data_conclusao: allDone ? formatarData() : null
+            });
+        }
+
+        function shareNote(id) {
+            const note = currentNotes.find(n => n.id === id);
+            if (!note) return;
+
+            const shareUrl = `${window.location.origin}${window.location.pathname}?noteId=${note.id}`;
+            let msg = `*Kivo Notes - Tarefa Compartilhada*\n`;
+            msg += `📌 *Tema:* ${note.theme}\n\n`;
+            note.subItems.forEach(s => {
+                msg += s.concluido ? `✅ ~${s.texto}~\n` : `⬜ ${s.texto}\n`;
+            });
+            // Texto Corrigido conforme solicitado
+            msg += `\nAcesse para colaborar:\n${shareUrl}`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         function celebrate() {
             const canvas = document.getElementById('confetti-canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             let pieces = [];
-            const colors = ['#f7d05c', '#f49c5e', '#f2a297', '#e28a55', '#4A90E2', '#a2d9ce', '#bb8fce'];
-
-            for (let i = 0; i < 100; i++) {
+            const colors = ['#f7d05c', '#ff6b6b', '#54a0ff', '#3498db', '#25D366'];
+            
+            for (let i = 0; i < 150; i++) {
                 pieces.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height - canvas.height,
-                    rotation: Math.random() * 360,
-                    speed: 4 + Math.random() * 5,
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+                    rotation: Math.random() * 360, speed: 5 + Math.random() * 7,
                     color: colors[Math.floor(Math.random() * colors.length)],
-                    width: 8 + Math.random() * 6,
-                    height: 15 + Math.random() * 5
+                    width: 10 + Math.random() * 6, height: 18 + Math.random() * 5
                 });
             }
-
             function update() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 let alive = false;
-
                 pieces.forEach(p => {
-                    p.y += p.speed;
-                    p.rotation += 2;
+                    p.y += p.speed; p.rotation += 3;
                     if (p.y < canvas.height) alive = true;
-
-                    ctx.save();
-                    ctx.translate(p.x, p.y);
-                    ctx.rotate(p.rotation * Math.PI / 180);
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height);
+                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color; ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height);
                     ctx.restore();
                 });
-
                 if (alive) requestAnimationFrame(update);
-                else ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
             update();
         }
 
-        let dragSrcEl = null;
-
-        function setupDragAndDropEvents(el) {
-            el.addEventListener('dragstart', handleDragStart);
-            el.addEventListener('dragover', handleDragOver);
-            el.addEventListener('drop', handleDrop);
-            el.addEventListener('dragend', handleDragEnd);
-
-            el.addEventListener('touchstart', handleTouchStart, {passive: false});
-            el.addEventListener('touchmove', handleTouchMove, {passive: false});
-            el.addEventListener('touchend', handleTouchEnd);
-        }
-
-        function handleDragStart(e) {
-            this.classList.add('dragging');
-            dragSrcEl = this;
-            e.dataTransfer.effectAllowed = 'move';
-        }
-
-        function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); return false; }
-
-        function handleDrop(e) {
-            if (e.stopPropagation) e.stopPropagation();
-            if (dragSrcEl !== this) {
-                reorderArray(dragSrcEl.getAttribute('data-id'), this.getAttribute('data-id'));
+        function openModal(isEdit = false, id = null) {
+            editingNoteId = id; tempSubtasks = [];
+            document.getElementById('themeInput').value = '';
+            document.getElementById('subtasksSetupList').innerHTML = '';
+            
+            if (isEdit) {
+                document.getElementById('modalTitle').innerText = "Editar Nota";
+                const note = currentNotes.find(n => n.id === id);
+                document.getElementById('themeInput').value = note.theme;
+                tempSubtasks = [...note.subItems];
+                selectedColor = note.color || '#fff7d6';
+                document.querySelectorAll('.color-swatch').forEach(s => {
+                    s.classList.remove('selected');
+                    if(s.getAttribute('data-color') === selectedColor) s.classList.add('selected');
+                });
+                renderTempSubtasks();
+            } else {
+                document.getElementById('modalTitle').innerText = "Nova Nota";
             }
-            return false;
+            document.getElementById('noteModal').style.display = 'flex';
         }
 
-        function handleDragEnd() { this.classList.remove('dragging'); renderTasks(); }
-
-        let touchStartEl = null;
-        function handleTouchStart(e) { touchStartEl = this; this.classList.add('dragging'); }
-
-        function handleTouchMove(e) {
-            e.preventDefault(); 
-            const touch = e.touches[0];
-            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-            const liTarget = target ? target.closest('li') : null;
-
-            if (liTarget && liTarget !== touchStartEl && !liTarget.classList.contains('completed') && liTarget.getAttribute('data-id')) {
-                reorderArray(touchStartEl.getAttribute('data-id'), liTarget.getAttribute('data-id'));
-                touchStartEl.classList.remove('dragging');
-                touchStartEl = liTarget;
-                touchStartEl.classList.add('dragging');
-            }
+        function closeModal() { document.getElementById('noteModal').style.display = 'none'; editingNoteId = null; }
+        
+        function addTempSubtask() {
+            const input = document.getElementById('subtaskInput');
+            const txt = input.value.trim();
+            if (txt === '') return;
+            tempSubtasks.push({ texto: txt, concluido: false });
+            input.value = '';
+            renderTempSubtasks();
         }
 
-        function handleTouchEnd() { if (touchStartEl) touchStartEl.classList.remove('dragging'); renderTasks(); }
-
-        function reorderArray(srcId, targetId) {
-            const srcIndex = tasks.findIndex(t => t.id === srcId);
-            const targetIndex = tasks.findIndex(t => t.id === targetId);
-            const [removed] = tasks.splice(srcIndex, 1);
-            tasks.splice(targetIndex, 0, removed);
-            persistData();
-        }
-
-        function openModal(taskId) {
-            currentTaskId = taskId;
-            const task = tasks.find(t => t.id === taskId);
-            document.getElementById('modalTaskTitle').innerText = task.titulo;
-            document.getElementById('subItemModal').style.display = 'flex';
-            renderSubItems();
-        }
-
-        function closeModal() {
-            document.getElementById('subItemModal').style.display = 'none';
-            currentTaskId = null;
-            renderTasks(); 
-        }
-
-        function addSubItem() {
-            const input = document.getElementById('subItemInput');
-            const texto = input.value.trim();
-            if (texto !== '' && currentTaskId) {
-                const task = tasks.find(t => t.id === currentTaskId);
-                task.subItems.push({ id: Date.now().toString(), texto: texto, concluido: false });
-                input.value = '';
-                persistData();
-                renderSubItems();
-            }
-        }
-
-        function renderSubItems() {
-            if (!currentTaskId) return;
-            const task = tasks.find(t => t.id === currentTaskId);
-            const list = document.getElementById('subItemsList');
-            list.innerHTML = '';
-
-            task.subItems.forEach(item => {
-                const li = document.createElement('li');
-                li.className = `sub-item ${item.concluido ? 'completed' : ''}`;
-                li.innerHTML = `
-                    <div class="custom-checkbox ${item.concluido ? 'checked' : ''}" style="width: 22px; height: 22px;" onclick="toggleSubItem('${item.id}')"></div>
-                    <span>${item.texto}</span>
-                `;
-                list.appendChild(li);
+        function renderTempSubtasks() {
+            const container = document.getElementById('subtasksSetupList');
+            container.innerHTML = '';
+            tempSubtasks.forEach(s => {
+                const d = document.createElement('div');
+                d.className = 'setup-subtask-item';
+                d.innerText = `▪ ${s.texto}`;
+                container.appendChild(d);
             });
         }
 
-        function toggleSubItem(subItemId) {
-            const task = tasks.find(t => t.id === currentTaskId);
-            const item = task.subItems.find(i => i.id === subItemId);
-            item.concluido = !item.concluido;
-            persistData();
-            renderSubItems();
+        async function saveNote(e) {
+            e.preventDefault();
+            const theme = document.getElementById('themeInput').value.trim();
+            if (theme === '') return;
+
+            closeModal();
+            const novaOrdem = currentNotes.length > 0 ? Math.max(...currentNotes.map(n => n.ordem || 0)) + 1 : 0;
+
+            if (editingNoteId) {
+                const docRef = doc(db, "kivo_tasks", editingNoteId);
+                await updateDoc(docRef, { theme: theme, color: selectedColor, subItems: tempSubtasks, concluida: tempSubtasks.length > 0 && tempSubtasks.every(s => s.concluido) });
+            } else {
+                const newId = Date.now().toString();
+                const docRef = doc(db, "kivo_tasks", newId);
+                await setDoc(docRef, { theme: theme, color: selectedColor, subItems: tempSubtasks, concluida: false, seen: false, ordem: novaOrdem, data_criacao: formatarData(), data_conclusao: null, timestamp: Date.now() });
+            }
         }
 
-        document.getElementById('titulo').addEventListener('keypress', e => { if (e.key === 'Enter') saveTask(); });
-        document.getElementById('subItemInput').addEventListener('keypress', e => { if (e.key === 'Enter') addSubItem(); });
+        async function deleteNote(id) { if (confirm('Excluir esta nota permanentemente?')) await deleteDoc(doc(db, "kivo_tasks", id)); }
 
-        renderTasks();
+        document.getElementById('openCreateBtn').onclick = () => openModal(false);
+        document.getElementById('closeModalBtn').onclick = closeModal;
+        document.getElementById('addSubtaskBtn').onclick = addTempSubtask;
+        document.getElementById('saveNoteBtn').onclick = saveNote;
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // Versão v7.1 para forçar o navegador a atualizar o cache local do PWA
-                navigator.serviceWorker.register('./sw.js?v7.1').catch(err => console.log("Erro sw:", err));
-            });
-        }
+        init();
     </script>
 </body>
 </html>
